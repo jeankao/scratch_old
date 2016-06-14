@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} Teachers {% endblock %}
+{% block content %}
+{% load tag %}
+{{user_name}}
+        <table>
+        <tr>
+            <td>姓名</td>
+            <td>記錄</td>
+            <td>時間</td>
+        </tr>
+        {% for log in events %}
+            <tr>
+                <td>{{log.user_id|name}}</td>
+                <td>{{log.event}}</a></td>
+				<td>{{log.publish}}</td>
+            </tr>
+        {% endfor %}
+        </table>
+        {% include "pagination.html" with page=page_obj %}
+{% endblock %}

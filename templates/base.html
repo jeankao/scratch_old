@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!--
+Template Name: Abele
+Author: <a href="http://www.os-templates.com/">OS Templates</a>
+Author URI: http://www.os-templates.com/
+Licence: Free to use under our free template licence terms
+Licence URI: http://www.os-templates.com/template-terms
+-->
+<html>
+<head>
+	<title>程式設計輕鬆學─使用Scratch2| {% block title %}Homepage{% endblock %}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>	
+{% block head_ext %}{% endblock %}
+	<link href="/static/css/layout.css" rel="stylesheet" type="text/css" media="all">
+	
+</head>
+<body id="top">
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row0">
+  <div id="topbar" class="clear"> 
+    <!-- ################################################################################################ -->
+    <div class="fl_left">
+      <ul class="nospace linklist"> 
+		<li><a href="{% url 'homepage' %}">首頁</a></li>
+		<li><a href="https://scratch.mit.edu/" target="_blank">官網</a></li>		
+		<li><a href="/student/lessons/1">Scratch12堂課</a></li>		
+		<li><a href="/student/lessons/2">實戰入門</a></li>		
+		<li><a href="/student/lessons/3">實戰進擊</a></li>		
+		<li><a href="/student/lessons/4">實戰髙手</a></li>	
+		<li><a href="/show/gallery">藝廊</a></li>		
+		{% if not user.is_authenticated %}
+		<li><a href="http://www.books.com.tw/products/0010703424" target="_blank">參考書</a></li>
+		{% endif %}
+		{% if user.is_authenticated %}
+		<li><a href="/account">大廳</a></li>	
+		        <li><a href="/student/classroom">班級</a></li>	
+			{% for group in user.groups.all %}
+				{% if group.name == 'teacher' %}
+		<li><a href="/teacher/classroom">教師管理</a></li>
+				{% endif %}		
+			{% endfor %}
+		{% if user.id == 1 %}
+	
+		<li><a href="/account/userlist">帳號管理</a></li>
+			{% endif %}				        
+		{% endif %}
+		<li><a href="/account/event">事件</a></a></li>		
+      </ul>
+    </div>
+    <div class="fl_right">
+      <ul class="nospace linklist">
+		{% if user.is_authenticated %}
+		<li><a href="/account/profile/{{user.id}}"><img src="/static/avatar/s{{ user.profile.avatar }}.png"><strong>{{ user.first_name }}</strong></a></li>
+		<li><a href="/account/logout/?next=/account/suss_logout/{{user.id}}" class='button'>登出</a></li>
+		{% else %}
+		<li>歡迎</li>
+		<li>請<a href="/account/login" class='button'>登入</a></li>
+		{% endif %}
+      </ul>
+    </div>
+    <!-- ################################################################################################ -->
+  </div>
+</div>
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row1">
+  <header id="header" class="clear"> 
+    <!-- ################################################################################################ -->
+    <div id="logo" class="fl_left">
+      <h1><a href="{% url 'homepage' %}"><img src="/static/images/banner.png"></a></h1>
+    </div>
+    <!-- ################################################################################################ -->
+    <nav id="mainav" class="fl_right">
+	  {% block mainav %}{% endblock %}
+    </nav>
+    <!-- ################################################################################################ -->
+  </header>
+</div>
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row2 bgded">
+  <div class="overlay">
+    <div id="#breadcrumb" class="clear"> 
+      <!-- ################################################################################################ -->
+      {% block breadcrumb %}{% endblock %} 
+      <!-- ################################################################################################ -->
+    </div>
+  </div>
+</div>
+
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row3">
+  <main class="container clear"> 
+    <!-- main body -->
+    <!-- ################################################################################################ -->
+    <div id="content" class="content"> 
+		{% block content %}{% endblock %}
+    </div>
+    <!-- ################################################################################################ -->
+    <!-- / main body -->
+    <div class="clear"></div>
+  </main>
+</div>
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row4">
+  <section id="cta" class="clear"> 
+    <!-- ################################################################################################ -->
+    <!-- ################################################################################################ -->
+    <div class="clear"></div>
+  </section>
+</div>
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row5">
+  <footer id="footer" class="clear"> 
+    <!-- ################################################################################################ -->
+    <!-- ################################################################################################ -->
+  </footer>
+</div>
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<!-- ################################################################################################ -->
+<div class="wrapper row6">
+  <div id="copyright" class="clear"> 
+    <!-- ################################################################################################ -->
+    <p class="fl_left">Copyright &copy; 2016 - All Rights Reserved - <a href="#">高慧君</a></p>
+    <p class="fl_right">Template by <a target="_blank" href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a> <a href="http://www.freepik.com">Designed by Freepik</a></p>
+
+    <!-- ################################################################################################ -->
+  </div>
+</div>
+<!-- JAVASCRIPTS -->
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="/static/js/jquery.mobilemenu.js"></script>
+<script src=" http://cdn.jsdelivr.net/jquery.cookie/1.4.1/jquery.cookie.min.js "></script>
+<script>
+  var csrftoken = $.cookie('csrftoken');
+  function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    }
+  });
+ 
+  $(document).ready(function(){
+    {% block domready %}
+    {% endblock %}
+  });
+</script>  
+</body>
+</html>

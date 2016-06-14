@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %} Teachers {% endblock %}
+{% block content %}
+        <table>
+            <tr>
+                <td>姓名</td>
+                <td>積分</td>
+        {% for enroll, value in datas %}
+            <tr>
+            <td><a href="/account/profile/{{enroll.student_id}}">{{enroll.seat}}){{enroll.student.first_name}}</a></td>
+            <td><a href="/account/log/{{kind}}/{{enroll.student_id}}">{{value}}</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+{% endblock %}
