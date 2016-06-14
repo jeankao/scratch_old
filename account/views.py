@@ -81,7 +81,7 @@ def register(request):
             profile = Profile(user=new_user)
             profile.save()
             # 記錄系統事件
-            log = Log(user_id=new_user.user.id, event='註冊帳號成功')
+            log = Log(user_id=new_user.id, event='註冊帳號成功')
             log.save()                
             return render(request,
                           'account/register_done.html',

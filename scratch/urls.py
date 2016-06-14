@@ -21,5 +21,6 @@ urlpatterns = [
     url(r'^account/', include('account.urls')),
     url(r'^teacher/', include('teacher.urls')),    
     url(r'^student/', include('student.urls')),        
+    url(r'^certificate/', include('certificate.urls')),     
     url(r'^$', 'account.views.homepage', name='homepage'),
 ]
