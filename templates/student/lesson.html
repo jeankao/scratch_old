@@ -81,7 +81,7 @@ $(function () {
   <h1>第1堂課</h1>
   <ul class="tabs">
     <li><a href="#tab1">影片：為什麼要學程式設計</a></li>
-    <li><a href="https://studio.code.org/hoc/1" target=_blank>1小時學程式設計</a></li>
+    <li><a href="javascript:lesson_log('hour of code');window.open('https://studio.code.org/hoc/1','_blank');">1小時學程式設計</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab0">證書</a></li>
     {% endif %}
