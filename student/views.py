@@ -204,13 +204,13 @@ def lessons(request, lesson):
             user_id = 0
         # 記錄系統事件 
         if lesson == "1":
-            log = Log(user_id=user_id, event='課程頁面<Scratch12堂課>')
+            log = Log(user_id=user_id, event='查看課程頁面<Scratch12堂課>')
         elif lesson == "2":
-            log = Log(user_id=user_id, event='課程頁面<實戰入門>')          
+            log = Log(user_id=user_id, event='查看課程頁面<實戰入門>')          
         elif lesson == "3":
-            log = Log(user_id=user_id, event='課程頁面<實戰進擊>') 
+            log = Log(user_id=user_id, event='查看課程頁面<實戰進擊>') 
         elif lesson == "4":
-            log = Log(user_id=user_id, event='課程頁面<實戰高手>')             
+            log = Log(user_id=user_id, event='查看課程頁面<實戰高手>')             
         log.save()         
         return render_to_response('student/lessons.html', {'lesson':lesson, 'enrolls':enrolls}, context_instance=RequestContext(request))
 
@@ -221,7 +221,7 @@ def lesson(request, lesson):
             return redirect("/account/login/")    
         else :
             # 記錄系統事件 
-            log = Log(user_id=request.user.id, event=u'課程內容<'+lesson+'>')
+            log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'>')
             log.save()     
             return render_to_response('student/lesson.html', {'lesson':lesson}, context_instance=RequestContext(request))
 
@@ -319,5 +319,5 @@ def work(request, classroom_id):
 def lesson_log(request, lesson):
     # 記錄系統事件
     tabname = request.POST.get('tabname')
-    log = Log(user_id=request.user.id, event=u'課程內容<'+lesson+'> | '+tabname)
+    log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'> | '+tabname)
     log.save()
