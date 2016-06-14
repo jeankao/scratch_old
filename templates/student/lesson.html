@@ -101,9 +101,6 @@ $(function () {
     </article>
     <article id="tab0">
         <BR>
-	{% if certificate %}
-	<img src="/{{certificate.picture}}">
-	{% endif %}
 	<form action="/certificate/" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_image" type="file" class="" name="image">

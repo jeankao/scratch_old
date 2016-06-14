@@ -8,7 +8,8 @@ from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 #from django.http import HttpResponse
 #from django.contrib.auth.models import User
-#from teacher.models import Classroom
+from account.models import Log
+from teacher.models import Classroom
 from student.models import Enroll
 from certificate.models import Certificate
 from PIL import Image,ImageDraw,ImageFont
@@ -21,6 +22,8 @@ import cStringIO as StringIO
 #from django.http import JsonResponse
 #from blog.models import Message, MessagePoll
 
+
+# 上傳 Hour of code 證書
 def upload_pic(request):
     m = []
     if request.method == 'POST':
@@ -44,6 +47,9 @@ def upload_pic(request):
                 m = Certificate(picture=form.cleaned_data['image'], student_id=request.user.id)
                 m.save()
             classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
+            # 記錄系統事件
+            log = Log(user_id=request.user.id, event='上傳Hour of Code證書成功')
+            log.save()             
             return redirect('/certificate/classroom/0/'+str(classroom_id))
     else :
         try:
@@ -53,6 +59,7 @@ def upload_pic(request):
         form = ImageUploadForm()
     return render_to_response('certificate/certificate.html', {'form':form, 'certificate': m}, context_instance=RequestContext(request))
 
+# 顯示證書
 def show(request, unit, enroll_id):
     enroll = Enroll.objects.get(id=enroll_id)
     if unit == "0" :
@@ -62,10 +69,15 @@ def show(request, unit, enroll_id):
 			certificate_image = ""
     else :
 		certificate_image = "static/certificate/" + unit + "/" + enroll_id + ".jpg"		
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看證書<'+unit+'><'+enroll.student.first_name+'>')
+    log.save() 		
     return render_to_response('certificate/show.html', {'certificate_image': certificate_image}, context_instance=RequestContext(request))
     
+# 顯示班級證書    
 def classroom(request, unit, classroom_id):
     enrolls = Enroll.objects.filter(classroom_id=classroom_id)
+    classroom_name = Classroom.objects.get(id=classroom_id).name
     datas = []
     nodatas = []
     for enroll in enrolls:	
@@ -125,4 +137,7 @@ def classroom(request, unit, classroom_id):
         nodatas = sorted(nodatas, key=getKey5)
     for data in nodatas:
 		datas.append(data)
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看班級證書<'+unit+'><'+classroom_name+'>')
+    log.save() 				
     return render_to_response('certificate/classroom.html', {'enrolls':nodatas,'datas': datas, 'unit':unit}, context_instance=RequestContext(request))

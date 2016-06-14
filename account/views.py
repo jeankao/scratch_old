@@ -240,7 +240,7 @@ class EventListView(ListView):
 
     def get_queryset(self):    
         # 記錄系統事件
-        log = Log(user_id=1, event='查看事件')
+        log = Log(user_id=self.request.user.id, event='查看事件')
         log.save()        
         queryset = Log.objects.order_by('-id')
         return queryset

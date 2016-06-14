@@ -16,7 +16,7 @@
 	{% if unit == "0" %}
     <td>{{enroll.0.seat}}</td>
     <td>{{enroll.0.student.first_name}}</td>	
-    <td>{{enroll.1.publish|timezone:'Asia/Taipei'}}</td>	
+    <td>{{enroll.1.publish}}</td>	
     <td>{% if enroll.1 %}<a href="/certificate/show/0/{{enroll.0.id}}"><img src="/static/images/certificate.png">{% endif %}</a></td>
 	{% else %}
     <td>{{enroll.seat}}</td>
