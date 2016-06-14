@@ -40,16 +40,24 @@ article {
 <script src='//assets.codepen.io/assets/common/stopExecutionOnTimeout.js?t=1'></script>
 <!-- <script src='/static/js/youtube.util.js'></script> -->
 <script>
+function lesson_log(tabname) {
+    $.post('/student/lesson/log/{{lesson}}/',
+        {'tabname': tabname},
+        function(data){}
+    );
+}
 $(function () {
     $('ul.tabs li:first').addClass('active');
+    lesson_log($('ul.tabs li:first').find('a').text());
     $('.block article').hide();
     $('.block article:first').show();
     $('ul.tabs li').on('click', function () {
         $('ul.tabs li').removeClass('active');
         $(this).addClass('active');
         $('.block article').hide();
-        var activeTab = $(this).find('a').attr('href');
-        $(activeTab).show();
+        var activeTab = $(this).find('a');
+        $(activeTab.attr('href')).show();
+        lesson_log(activeTab.text());
         return false;
     });
     {% if lesson == "1" %}
