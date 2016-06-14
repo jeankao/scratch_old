@@ -315,3 +315,9 @@ def work(request, classroom_id):
         enroll_group = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id).group
     return render_to_response('student/work.html', {'works':works, 'lesson_list':lesson_list, 'user_id': request.user.id, 'classroom_id':classroom_id, 'group': enroll_group}, context_instance=RequestContext(request))
 
+
+def lesson_log(request, lesson):
+    # 記錄系統事件
+    tabname = request.POST.get('tabname')
+    log = Log(user_id=request.user.id, event=u'課程內容<'+lesson+'> | '+tabname)
+    log.save()
