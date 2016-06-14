@@ -28,6 +28,7 @@ urlpatterns = [
     # 課程  
     url(r'^lesson/(?P<lesson>[^/]+)/$', 'student.views.lesson'),    
     url(r'^lessons/(?P<lesson>[^/]+)/$', 'student.views.lessons'),   
+    url(r'^lesson/log/(?P<lesson>[^/]+)/$', 'student.views.lesson_log'),    
     #url(r'^memo/(?P<classroom_id>[^/]+)/(?P<index>[^/]+)/$', 'student.views.memo'),   
     #url(r'^exam/$', 'student.views.exam'),      
     #url(r'^exam_check/$', 'student.views.exam_check'),     
