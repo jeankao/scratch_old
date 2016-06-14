@@ -26,8 +26,10 @@ urlpatterns = [
     
     #url(r'^exam/(?P<classroom_id>\d+)/$', 'teacher.views.exam_list'),
 	#url(r'^exam_detail/(?P<student_id>\d+)/(?P<exam_id>\d+)/$', 'teacher.views.exam_detail'), 
-    #url(r'^memo/(?P<classroom_id>\d+)/$', 'teacher.views.memo'),	
-	#url(r'^check/(?P<user_id>[^/]+)/(?P<unit>[^/]+)/(?P<classroom_id>\d+)/$', 'teacher.views.check'), 	
+    
+    # 心得
+    url(r'^memo/(?P<classroom_id>\d+)/$', 'teacher.views.memo'),	
+	url(r'^check/(?P<user_id>[^/]+)/(?P<unit>[^/]+)/(?P<classroom_id>\d+)/$', 'teacher.views.check'), 	
     #url(r'^grade/(?P<classroom_id>\d+)/$', 'teacher.views.grade'),
     #url(r'^grade1/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit1'),
     #url(r'^grade2/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit2'),

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 #from django.http import HttpResponse
 #from django.contrib.auth import authenticate, login
 from django.template import RequestContext
-#from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 #from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView, CreateView
 from django.core.exceptions import ObjectDoesNotExist
@@ -77,6 +77,9 @@ def classroom_edit(request, classroom_id):
     
 # 退選
 def unenroll(request, enroll_id, classroom_id):
+    # 限本班任課教師
+    if not is_teacher(request.user, classroom_id):
+        return redirect("homepage")    
     enroll = Enroll.objects.get(id=enroll_id)
     enroll.delete()
     classroom_name = Classroom.objects.get(id=classroom_id).name
@@ -87,6 +90,9 @@ def unenroll(request, enroll_id, classroom_id):
 
 # 列出班級所有作業
 def work(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")    
         classroom = Classroom.objects.get(id=classroom_id)
         # 記錄系統事件
         log = Log(user_id=request.user.id, event=u'列出班級所有作業<'+classroom.name+'>')
@@ -95,6 +101,9 @@ def work(request, classroom_id):
 
 # 列出某作業所有同學名單
 def score(request, classroom_id, index):
+    # 限本班任課教師
+    if not is_teacher(request.user, classroom_id):
+        return redirect("homepage")    
     enrolls = Enroll.objects.filter(classroom_id=classroom_id)
     classroom_name = Classroom.objects.get(id=classroom_id).name
     classmate_work = []
@@ -215,6 +224,9 @@ def score_peer(request, index, classroom_id, group):
 
 # 設定為小老師
 def assistant(request, classroom_id, user_id, lesson):
+    # 限本班任課教師
+    if not is_teacher(request.user, classroom_id):
+        return redirect("homepage")    
     user = User.objects.get(id=user_id)
     assistant = Assistant(student_id=user_id, classroom_id=classroom_id, lesson=lesson)
     assistant.save()
@@ -225,6 +237,9 @@ def assistant(request, classroom_id, user_id, lesson):
     
 # 取消小老師
 def assistant_cancle(request, classroom_id, user_id, lesson):
+    # 限本班任課教師
+    if not is_teacher(request.user, classroom_id):
+        return redirect("homepage")    
     user = User.objects.get(id=user_id)   
     assistant = Assistant.objects.get(student_id=user_id, classroom_id=classroom_id, lesson=lesson)
     assistant.delete()
@@ -236,6 +251,9 @@ def assistant_cancle(request, classroom_id, user_id, lesson):
     
 # 以分組顯示作業
 def work_group(request, lesson, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")    
         classroom_name = Classroom.objects.get(id=classroom_id).name
         student_groups = []
         groups = EnrollGroup.objects.filter(classroom_id=classroom_id)
@@ -271,3 +289,103 @@ def work_group(request, lesson, classroom_id):
         log.save()         
         return render_to_response('teacher/work_group.html', {'lesson':lesson, 'lesson_data':lesson_data, 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
 
+def memo(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")    
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
+        classroom_name = Classroom.objects.get(id=classroom_id).name
+        return render_to_response('teacher/memo.html', {'enrolls':enrolls, 'classroom_name':classroom_name}, context_instance=RequestContext(request))
+
+@login_required
+def check(request, user_id, unit,classroom_id):
+    # 限本班任課教師
+    if not is_teacher(request.user, classroom_id):
+        return redirect("homepage")
+
+    user_name = User.objects.get(id=user_id).first_name
+    del lesson_list[:]
+    reset()
+    works = Work.objects.filter(user_id=user_id)
+    for work in works:
+        lesson_list[work.index-1].append(work.score)
+        lesson_list[work.index-1].append(work.publication_date)
+        if work.score > 0 :
+            score_name = User.objects.get(id=work.scorer).first_name
+            lesson_list[work.index-1].append(score_name)
+        else :
+            lesson_list[work.index-1].append("尚未評分!")
+        lesson_list[work.index-1].append(work.memo)
+    c = 0
+    for lesson in lesson_list:
+        assistant = Assistant.objects.filter(student_id=user_id, lesson=c+1)
+        if assistant.exists() :
+            lesson.append("V")
+        else :
+            lesson.append("")
+        c = c + 1
+        #enroll_group = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id).group
+    user = User.objects.get(id=user_id)
+
+    if unit == "1" :
+        if request.method == 'POST':
+            form = CheckForm1(request.POST)
+            if form.is_valid():
+                enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+                enroll.score_memo1=form.cleaned_data['score_memo1']
+                enroll.save()
+						
+                if form.cleaned_data['certificate']:		
+                    return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
+                else:
+                    return redirect('/teacher/memo/'+classroom_id)
+        else:
+            enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+            form = CheckForm1(instance=enroll)
+    elif unit == "2":
+        if request.method == 'POST':
+            form = CheckForm2(request.POST)
+            if form.is_valid():
+                enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+                enroll.score_memo2=form.cleaned_data['score_memo2']
+                enroll.save()
+						
+                if form.cleaned_data['certificate']:		
+                    return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
+                else:
+                    return redirect('/teacher/memo/'+classroom_id)					
+        else:
+            enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+            form = CheckForm2(instance=enroll)
+    elif unit == "3":
+        if request.method == 'POST':
+            form = CheckForm3(request.POST)
+            if form.is_valid():
+                enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+                enroll.score_memo3=form.cleaned_data['score_memo3']
+                enroll.save()
+						
+                if form.cleaned_data['certificate']:		
+                    return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
+                else:
+                    return redirect('/teacher/memo/'+classroom_id)							
+        else:
+            enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+            form = CheckForm3(instance=enroll)
+
+    else:
+        if request.method == 'POST':
+            form = CheckForm4(request.POST)
+            if form.is_valid():
+                enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+                enroll.score_memo4=form.cleaned_data['score_memo4']
+                enroll.save()
+						
+                if form.cleaned_data['certificate']:		
+                    return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
+                else:
+                    return redirect('/teacher/memo/'+classroom_id)							
+        else:
+            enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
+            form = CheckForm4(instance=enroll)	
+    return render_to_response('teacher/check.html', {'form':form, 'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit}, context_instance=RequestContext(request))

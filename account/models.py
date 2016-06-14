@@ -39,6 +39,7 @@ class PointHistory(models.Model):
 	def __unicode__(self):
 		return str(self.user_id)
 		
+# 系統記錄
 class Log(models.Model):
     # 使用者序號
 	user_id = models.IntegerField(default=0)
@@ -49,4 +50,33 @@ class Log(models.Model):
 	
 	def __unicode__(self):
 		return str(self.user_id)+'--'.self.event	
-	
+
+# 大廳訊息	
+class Message(models.Model):
+    title = models.CharField(max_length=250)
+    url = models.CharField(max_length=250)
+    time = models.DateTimeField(auto_now_add=True)
+
+    #def __str__(self):
+    #    return self.title
+		
+    @classmethod
+    def create(cls, title, url, time):
+        message = cls(title=title, url=url, time=time)
+        return message
+
+# 訊息    
+class MessagePoll(models.Model):
+    message_id = models.IntegerField(default=0)
+    reader_id = models.IntegerField(default=0)
+    classroom_id = models.IntegerField(default=0)
+    read = models.BooleanField(default=False)
+    
+    @property
+    def message(self):
+        return Message.objects.get(id=self.message_id)
+        
+    @classmethod
+    def create(cls, message_id, reader_id):
+        messagepoll = cls(message_id=message_id, reader_id=reader_id)
+        return messagepoll
