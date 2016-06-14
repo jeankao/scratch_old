@@ -29,12 +29,15 @@ urlpatterns = [
     url(r'^lesson/(?P<lesson>[^/]+)/$', 'student.views.lesson'),    
     url(r'^lessons/(?P<lesson>[^/]+)/$', 'student.views.lessons'),   
     url(r'^lesson/log/(?P<lesson>[^/]+)/$', 'student.views.lesson_log'),    
-    #url(r'^memo/(?P<classroom_id>[^/]+)/(?P<index>[^/]+)/$', 'student.views.memo'),   
+    #查詢該作業分組小老師
+    url(r'^group/work/(?P<lesson>[^/]+)/(?P<classroom_id>[^/]+)$', 'student.views.work_group'),  
+    #查詢該作業所有同學心得
+    url(r'^memo/(?P<classroom_id>[^/]+)/(?P<index>[^/]+)/$', 'student.views.memo'),   
     #url(r'^exam/$', 'student.views.exam'),      
     #url(r'^exam_check/$', 'student.views.exam_check'),     
     #url(r'^exam/score/$', 'student.views.exam_score'),  	
     #url(r'^rank/(?P<kind>[^/]+)/(?P<classroom_id>[^/]+)/$', views.RankListView.as_view(), name='rank'), 
-    #url(r'^group/work/(?P<lesson>[^/]+)/(?P<classroom_id>[^/]+)$', 'student.views.work_group'),  		
-    #url(r'^memo_all/(?P<classroom_id>[^/]+)$', 'student.views.memo_all'),  	
-    #url(r'^memo_show/(?P<user_id>\d+)/(?P<unit>\d+)/(?P<classroom_id>[^/]+)/(?P<score>[^/]+)/$', 'student.views.memo_show'), 	
+    #查詢某班級所有同學心得		
+    url(r'^memo_all/(?P<classroom_id>[^/]+)$', 'student.views.memo_all'),  	
+    url(r'^memo_show/(?P<user_id>\d+)/(?P<unit>\d+)/(?P<classroom_id>[^/]+)/(?P<score>[^/]+)/$', 'student.views.memo_show'), 	
 ]

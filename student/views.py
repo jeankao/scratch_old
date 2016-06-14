@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 #from django.shortcuts import render
 from django.shortcuts import render_to_response, redirect
-#from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 #from django.http import HttpResponse
 #from django.contrib.auth import authenticate, login
 from django.template import RequestContext
@@ -15,11 +15,11 @@ from student.models import Enroll, EnrollGroup, Work, Assistant, Exam
 from account.models import Log
 from certificate.models import Certificate
 from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm
-#from django.utils import timezone
+from django.utils import timezone
 from student.lesson import *
-#from account.avatar import *
+from account.avatar import *
 #from django.db import IntegrityError
-#from account.models import Profile, PointHistory
+from account.models import Profile, PointHistory
 #from django.http import JsonResponse
 
 # 判斷是否為授課教師
@@ -240,9 +240,15 @@ def submit(request, index):
                     # History
                     history = PointHistory(user_id=request.user.id, kind=1, message='繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path().replace("submit", "submitall"))
                     history.save()
+                    # 記錄系統事件 
+                    log = Log(user_id=request.user.id, event=u'新增作業成功<'+index+'>')
+                    log.save()    
             else:
                 if form.is_valid():
                     work.update(number=form.cleaned_data['number'], memo=form.cleaned_data['memo'])
+                    # 記錄系統事件 
+                    log = Log(user_id=request.user.id, event=u'更新作業成功<'+index+'>')
+                    log.save()                        
                 else :
                     work.update(memo=form.cleaned_data['memo'])           
                 return redirect('/student/submit/'+index)
@@ -272,10 +278,16 @@ def submitall(request, index):
                     update_avatar(request, 1, 3)
                     # History
                     history = PointHistory(user_id=request.user.id, kind=1, message='繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path())
-                    history.save()					
+                    history.save()	
+                    # 記錄系統事件 
+                    log = Log(user_id=request.user.id, event=u'新增作業成功<'+index+'>')
+                    log.save()                        
             else:
                 if form.is_valid():
                     work.update(number=form.cleaned_data['number'], memo=form.cleaned_data['memo'])
+                    # 記錄系統事件 
+                    log = Log(user_id=request.user.id, event=u'更新作業成功<'+index+'>')
+                    log.save()                           
                 else :
                     work.update(memo=form.cleaned_data['memo'])           
                 return redirect('/student/submitall/'+index)
@@ -313,11 +325,110 @@ def work(request, classroom_id):
             lesson.append("")
         c = c + 1
         enroll_group = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id).group
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看個人所有作業')
+    log.save()          
     return render_to_response('student/work.html', {'works':works, 'lesson_list':lesson_list, 'user_id': request.user.id, 'classroom_id':classroom_id, 'group': enroll_group}, context_instance=RequestContext(request))
 
-
+# 點擊各課tab記錄
 def lesson_log(request, lesson):
     # 記錄系統事件
     tabname = request.POST.get('tabname')
     log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'> | '+tabname)
     log.save()
+
+# 查詢某作業分組小老師    
+def work_group(request, lesson, classroom_id):
+        student_groups = []
+        groups = EnrollGroup.objects.filter(classroom_id=classroom_id)
+        try:
+                student_group = Enroll.objects.get(student_id=request.user.id, classroom_id=classroom_id).group
+        except ObjectDoesNotExist :
+                student_group = []		
+        for group in groups:
+            enrolls = Enroll.objects.filter(classroom_id=classroom_id, group=group.id)
+            group_assistants = []
+            works = []
+            scorer_name = ""
+            for enroll in enrolls: 
+                try:    
+                    work = Work.objects.get(user_id=enroll.student_id, index=lesson)
+                    if work.scorer > 0 :
+                        scorer = User.objects.get(id=work.scorer)
+                        scorer_name = scorer.first_name
+                    else :
+                        scorer_name = "X"
+                except ObjectDoesNotExist:
+                    work = Work(index=lesson, user_id=1, number="0")
+                works.append([enroll, work.score, scorer_name, work.number])
+                try :
+                    assistant = Assistant.objects.get(student_id=enroll.student.id, classroom_id=classroom_id, lesson=lesson)
+                    group_assistants.append(enroll)
+                except ObjectDoesNotExist:
+				    pass
+            student_groups.append([group, works, group_assistants])
+        lesson_data = lesson_list[int(lesson)-1]		
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看作業小老師<'+lesson+'>')
+        log.save()        
+        return render_to_response('student/work_group.html', {'lesson':lesson, 'lesson_data':lesson_data, 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
+
+# 查詢某作業所有同學心得
+def memo(request, classroom_id, index):
+ 
+    enrolls = Enroll.objects.filter(classroom_id=classroom_id)
+    datas = []
+    for enroll in enrolls:
+        try:
+            work = Work.objects.get(index=index, user_id=enroll.student_id)
+            datas.append([enroll.seat, enroll.student.first_name, work.memo])
+        except ObjectDoesNotExist:
+            datas.append([enroll.seat, enroll.student.first_name, ""])
+    def getKey(custom):
+        return custom[0]
+    datas = sorted(datas, key=getKey)	
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看同學心得<'+index+'>')
+    log.save()    
+    return render_to_response('student/memo.html', {'datas': datas}, context_instance=RequestContext(request))
+
+
+# 查詢某班級心得
+def memo_all(request, classroom_id):
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
+        classroom_name = Classroom.objects.get(id=classroom_id).name
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看班級心得<'+classroom_name+'>')
+        log.save()            
+        return render_to_response('student/memo_all.html', {'enrolls':enrolls, 'classroom_name':classroom_name}, context_instance=RequestContext(request))
+
+# 查詢個人心得
+def memo_show(request, user_id, unit,classroom_id, score):
+    user_name = User.objects.get(id=user_id).first_name
+    del lesson_list[:]
+    reset()
+    works = Work.objects.filter(user_id=user_id)
+    for work in works:
+        lesson_list[work.index-1].append(work.score)
+        lesson_list[work.index-1].append(work.publication_date)
+        if work.score > 0 :
+            score_name = User.objects.get(id=work.scorer).first_name
+            lesson_list[work.index-1].append(score_name)
+        else :
+            lesson_list[work.index-1].append("尚未評分!")
+        lesson_list[work.index-1].append(work.memo)
+    c = 0
+    for lesson in lesson_list:
+        assistant = Assistant.objects.filter(student_id=user_id, lesson=c+1)
+        if assistant.exists() :
+            lesson.append("V")
+        else :
+            lesson.append("")
+        c = c + 1
+        #enroll_group = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id).group
+    user = User.objects.get(id=user_id)
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看同學心得<'+user_name+'><'+unit+'>')
+    log.save()        
+    return render_to_response('student/memo_show.html', {'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit, 'score':score}, context_instance=RequestContext(request))
+    
