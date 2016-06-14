@@ -388,7 +388,7 @@ def memo(request, classroom_id, index):
         return custom[0]
     datas = sorted(datas, key=getKey)	
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'查看同學心得<'+index+'>')
+    log = Log(user_id=request.user.id, event=u'查看某作業所有同學心得<'+index+'>')
     log.save()    
     return render_to_response('student/memo.html', {'datas': datas}, context_instance=RequestContext(request))
 
