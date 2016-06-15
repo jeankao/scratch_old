@@ -1,18 +1,18 @@
 # -*- coding: UTF-8 -*-
 from account.models import Profile
 
-def update_avatar(request, kind, point):
+def update_avatar(user_id, kind, point):
 	if kind == 1 : #作業		
-		profile = Profile.objects.get(user_id=request.user.id)
+		profile = Profile.objects.get(user_id=user_id)
 		profile.work = profile.work + point
 	elif kind == 2 : #小老師
-		profile = Profile.objects.get(user_id=request.user.id)
+		profile = Profile.objects.get(user_id=user_id)
 		profile.assistant = profile.assistant + point
 	elif kind == 3 : #除錯
-		profile = Profile.objects.get(user_id=request.user.id)	
+		profile = Profile.objects.get(user_id=user_id)	
 		profile.debug = profile.debug + point
 	elif kind == 4 : #創意秀
-		profile = Profile.objects.get(user_id=request.student_id)	
+		profile = Profile.objects.get(user_id=user_id)	
 		profile.creative = profile.creative + point		
 	total = profile.work + profile.assistant + profile.debug + profile.creative
 	if total >= 300:

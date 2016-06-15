@@ -9,7 +9,7 @@ def reset():
     lesson_list.append(["4-1","第4堂課：條件式迴圈","範例：貓狗賽跑"])
     lesson_list.append(["4-2","第4堂課：條件式迴圈","練習：發球"])
     lesson_list.append(["5-1","第5堂課：無窮迴圈","範例：魚兒水中游"])
-    lesson_list.append(["5-2","第5堂課：無窮迴圈","練習：發球"])
+    lesson_list.append(["5-2","第5堂課：無窮迴圈","練習：不斷發球"])
     lesson_list.append(["6-1","第6堂課：單向選擇結構","範例：電流急急棒"])
     lesson_list.append(["6-2","第6堂課：單向選擇結構","練習：開車"])
     lesson_list.append(["7-1","第7堂課：雙向選擇結構","範例：打地鼠"])

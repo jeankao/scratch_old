@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %} Students {% endblock %}
 {% block content %}
+{% if group_show_open %}
 <a href="../add/{{classroom_id}}">新增組別</a>
+{% endif %}
 {% if teacher %}
 {% if group_show_open %}
 <a href="../open/{{classroom_id}}/0">關閉選組</a>

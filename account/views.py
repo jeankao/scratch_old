@@ -153,7 +153,7 @@ def realname(request):
             user.first_name =form.cleaned_data['first_name']
             user.save()
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event=u'修改姓名<'+user.fist_name+'>')
+            log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
             log.save()                
             return redirect('/account/profile/'+str(request.user.id))
     else:

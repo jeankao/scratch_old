@@ -236,9 +236,9 @@ def submit(request, index):
                     work2 = Work(index=index, user_id=request.user.id, number=form.cleaned_data['number'], memo=form.cleaned_data['memo'], publication_date=timezone.now())
                     work2.save()
 					# credit
-                    update_avatar(request, 1, 3)
+                    update_avatar(request.user.id, 1, 2)
                     # History
-                    history = PointHistory(user_id=request.user.id, kind=1, message='繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path().replace("submit", "submitall"))
+                    history = PointHistory(user_id=request.user.id, kind=1, message='2分--繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path().replace("submit", "submitall"))
                     history.save()
                     # 記錄系統事件 
                     log = Log(user_id=request.user.id, event=u'新增作業成功<'+index+'>')
@@ -275,9 +275,9 @@ def submitall(request, index):
                     work2 = Work(index=index, user_id=request.user.id, number=form.cleaned_data['number'], memo=form.cleaned_data['memo'], publication_date=timezone.now())
                     work2.save()
 					# credit
-                    update_avatar(request, 1, 3)
+                    update_avatar(request.user.id, 1, 2)
                     # History
-                    history = PointHistory(user_id=request.user.id, kind=1, message='繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path())
+                    history = PointHistory(user_id=request.user.id, kind=1, message='2分--繳交作業<'+lesson_list[int(index)-1][2]+'>', url=request.get_full_path())
                     history.save()	
                     # 記錄系統事件 
                     log = Log(user_id=request.user.id, event=u'新增作業成功<'+index+'>')

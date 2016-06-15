@@ -166,14 +166,21 @@ def scoring(request, classroom_id, user_id, index):
                 log = Log(user_id=request.user.id, event=u'新增評分<'+user.first_name+'><'+work.score+'分>')
                 log.save()                      
             else:
-                # 小老師
-                if not is_teacher(request.user, classroom_id):
-                    if work[0].score < 0 :   			    
-				                # credit
-                        update_avatar(request, 2, 1)
+                if work[0].score < 0 :   
+                    # 小老師
+                    if not is_teacher(request.user, classroom_id):
+    	                # credit
+                        update_avatar(request.user.id, 2, 1)
                         # History
-                        history = PointHistory(user_id=request.user.id, kind=2, message='assistant:<'+lesson_list[int(index)-1][2]+'>'+enroll.student.first_name.encode('utf8'), url=request.get_full_path())
+                        history = PointHistory(user_id=request.user.id, kind=2, message='1分--小老師:<'+lesson_list[int(index)-1][2]+'><'+enroll.student.first_name.encode('utf-8')+'>', url=request.get_full_path())
                         history.save()				
+    
+				    # credit
+                    update_avatar(enroll.student_id, 1, 1)
+                    # History
+                    history = PointHistory(user_id=user_id, kind=1, message='1分--作業受評<'+lesson_list[int(index)-1][2]+'><'+request.user.first_name.encode('utf-8')+'>', url=request.get_full_path())
+                    history.save()		                        
+                
                 work.update(score=form.cleaned_data['score'])
                 work.update(scorer=request.user.id)
                # 記錄系統事件

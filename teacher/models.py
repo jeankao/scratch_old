@@ -13,7 +13,7 @@ class Classroom(models.Model):
     # 是否開放分組
     group_open = models.BooleanField(default=True)
     # 是否開放創意秀分組
-    group_show_open = models.BooleanField(default=True)
+    group_show_open = models.BooleanField(default=False)
     
     @property
     def teacher(self):
