@@ -166,6 +166,7 @@ def writeFile(content, fileName, context):
 		# close file
 		file.close()
 
+# 產生證書圖片
 def make_image(unit, enroll_id, teacher_id):
     ''' A View that Returns a PNG Image generated using PIL'''
 
@@ -284,6 +285,9 @@ def make_certification(request, unit, enroll_id, action):
                     enroll.certificate4_date = timezone.now()					
                 classroom = Classroom.objects.get(id=enroll.classroom_id)
                 make_image(unit,enroll_id,classroom.teacher_id)
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u"核發證書<"+unit+'><'+enroll.student.first_name+'>')
+                log.save()                 
             else:
                 if unit == "1":
                     enroll.certificate1 = False

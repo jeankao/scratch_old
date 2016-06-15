@@ -7,7 +7,7 @@
 <table>
 <tr>
 <TD>姓名</TD>
-{% for show in lists.items.1.1 %}
+{% for show in lists.items.0.1 %}
 <td><a href="/show/detail/{{show.2.id}}">{{show.2.name}}</a><BR>{% for member in show.3 %}({{member.seat}}){{member.student.first_name}}<BR>{% endfor %}</td>
 {% endfor %}
 </tr>

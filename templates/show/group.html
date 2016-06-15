@@ -9,13 +9,16 @@
 <a href="../open/{{classroom_id}}/1">開放選組</a>
 {% endif %}
 {% endif %}
-<a href="../nogroup/{{classroom_id}}">尚未選組名單</a>
 <br>
 <table>
 <tr>
 <td>名稱</td>  
 <td>組員</td>  
 <td>狀態</td>
+<td>作品</td>
+<td>時間</td>
+<td>評分結果</td>
+<td>藝廊</td>
 </tr>
         {% for group in student_groups %}
                 <tr>
@@ -41,6 +44,63 @@
                 {% endif %}             
 				{% endif %}
                 </td>
+                <td>
+				{% if group.0.done == True %}
+				<a href="/show/detail/{{group.0.id}}">{{group.0.title}}</a>
+				{% endif %}
+                </td>
+				<td>
+				{% if group.0.done == True %}				
+				{{group.0.publish}}
+				{% endif %}
+				</td>
+				<td>
+				<a href="/show/score/{{group.0.id}}">查閱</a>
+				</td>
+			    {% for role_group in user.groups.all %}
+				{% if role_group.name == 'teacher' %}				
+				<td>{% if group.0.open %}<a href="#" data-showid="{{ group.0.id }}" data-action="close" class="open">取消</a>{% else %}<a href="#" data-showid="{{  group.0.id }}" data-action="open" class="open">開放</a>{% endif %}</td>
+				{% else %}
+                <td>{% if group.0.open %}已分享{% else %}無{% endif %}	
+				{% endif %}		
+			    {% endfor %}
+                </tr>        
         {% endfor %}
 </table>
+尚未分組名單
+{% for enroll in nogroup %}
+({{enroll.seat}}){{enroll.student.first_name}}
+{% endfor  %}
+
 {% endblock %}
+{% block domready %}
+  $('a.open').click(function(e){
+    var launcher = this;  
+    e.preventDefault();
+    $.post('/show/gallery/make/',
+      {
+        showid: $(launcher).data('showid'),
+        action: $(launcher).data('action')
+      },
+      function(data){
+        if (data['status'] == 'ok')
+        {
+          var previous_action = $(launcher).data('action');
+		   if (previous_action == 'open') {
+               $(launcher).html("取消");
+               $(launcher).data('action', 'close');
+           } else {
+               $(launcher).data('action', 'open');
+               $(launcher).html("開放");
+           }
+        }
+		else {
+				alert("hello");
+		}
+      }
+    );
+  });
+{% endblock %}
+
+
+
