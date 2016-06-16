@@ -2,10 +2,11 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 from . import views
+from student.views import RankListView
 
 urlpatterns = [
-    # post views
-    #url(r'^progress/(?P<classroom_id>\d+)/(?P<unit>\d+)$', 'student.views.progress'),   
+    # 作業進度查詢
+    url(r'^progress/(?P<classroom_id>\d+)/(?P<unit>\d+)$', 'student.views.progress'),   
 
     # 作業上傳
     url(r'^work/(?P<classroom_id>\d+)/$', 'student.views.work'),       
@@ -36,7 +37,10 @@ urlpatterns = [
     #url(r'^exam/$', 'student.views.exam'),      
     #url(r'^exam_check/$', 'student.views.exam_check'),     
     #url(r'^exam/score/$', 'student.views.exam_score'),  	
-    #url(r'^rank/(?P<kind>[^/]+)/(?P<classroom_id>[^/]+)/$', views.RankListView.as_view(), name='rank'), 
+
+    #積分排行榜
+    url(r'^rank/(?P<kind>[^/]+)/(?P<classroom_id>[^/]+)/$', views.RankListView.as_view(), name='rank'), 
+    
     #查詢某班級所有同學心得		
     url(r'^memo_all/(?P<classroom_id>[^/]+)$', 'student.views.memo_all'),  	
     url(r'^memo_show/(?P<user_id>\d+)/(?P<unit>\d+)/(?P<classroom_id>[^/]+)/(?P<score>[^/]+)/$', 'student.views.memo_show'), 	

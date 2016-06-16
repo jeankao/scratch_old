@@ -296,6 +296,7 @@ def work_group(request, lesson, classroom_id):
         log.save()         
         return render_to_response('teacher/work_group.html', {'lesson':lesson, 'lesson_data':lesson_data, 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
 
+# 心得
 def memo(request, classroom_id):
         # 限本班任課教師
         if not is_teacher(request.user, classroom_id):
@@ -304,6 +305,7 @@ def memo(request, classroom_id):
         classroom_name = Classroom.objects.get(id=classroom_id).name
         return render_to_response('teacher/memo.html', {'enrolls':enrolls, 'classroom_name':classroom_name}, context_instance=RequestContext(request))
 
+# 評分某同學某進度心得
 @login_required
 def check(request, user_id, unit,classroom_id):
     # 限本班任課教師
@@ -331,7 +333,6 @@ def check(request, user_id, unit,classroom_id):
         else :
             lesson.append("")
         c = c + 1
-        #enroll_group = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id).group
     user = User.objects.get(id=user_id)
 
     if unit == "1" :
@@ -395,4 +396,5 @@ def check(request, user_id, unit,classroom_id):
         else:
             enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
             form = CheckForm4(instance=enroll)	
-    return render_to_response('teacher/check.html', {'form':form, 'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit}, context_instance=RequestContext(request))
+    return render_to_response('teacher/check.html', {'form':form, 'works':works, 'lesson_list':lesson_list, 'user': user, 'unit':unit, 'classroom_id':classroom_id}, context_instance=RequestContext(request))
+

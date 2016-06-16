@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Create a question{% endblock %}
 {% block content %}
-	學生姓名：{{user_name}}
+	學生姓名：{{user.first_name}}
     <table>
     <tr>
         <td>編號</td>
@@ -20,7 +20,7 @@
             <td nowrap>{{lesson.2}}</td>
             <td>{{lesson.5}}</td>
             {% if lesson.3 == -1 %}
-                <td>已繳交</td>
+                <td><a target=_blank href="/teacher/scoring/{{classroom_id}}/{{user.id}}/{{forloop.counter}}">已繳交</a></td>
             {% else %}
                 <td>{{lesson.3}}</td>
             {% endif %}

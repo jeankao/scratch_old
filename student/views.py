@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.template import RequestContext
 #from django.contrib.auth.decorators import login_required
 #from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-#from django.views.generic import ListView
+from django.views.generic import ListView
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 from teacher.models import Classroom
@@ -431,4 +431,74 @@ def memo_show(request, user_id, unit,classroom_id, score):
     log = Log(user_id=request.user.id, event=u'查看同學心得<'+user_name+'><'+unit+'>')
     log.save()        
     return render_to_response('student/memo_show.html', {'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit, 'score':score}, context_instance=RequestContext(request))
+
+# 查詢作業進度
+def progress(request, classroom_id, unit):
+    bars = []
+    bars1 = []
+    bars2 = []
+    bars3 = []
+    bars4 = []
+    a = 0
+    classroom = Classroom.objects.get(id=classroom_id)
+    enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
+    for enroll in enrolls:
+        c = 0
+        for lesson in lesson_list :
+            works = Work.objects.filter(user_id=enroll.student_id)
+            bars.append([enroll, [], ""])
+            for work in works:
+                if work.index == c+1:
+                    bars[a*41+c][1] = work
+                    if work.scorer > 0 :
+                        score_name = User.objects.get(id=work.scorer).first_name
+                        bars[a*41+c][2] = score_name
+            c = c + 1
+        for i in range(17) :
+            bars1.append(bars[i+41*a])
+        for i in range(8) :
+            bars2.append(bars[i+17+41*a])
+        for i in range(8) :
+            bars3.append(bars[i+25+41*a])
+        for i in range(8) :
+            bars4.append(bars[i+33+41*a])
+        a = a + 1
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查看作業進度<'+unit+'><'+classroom.name+'>')
+    log.save()           
+    return render_to_response('student/progress.html', {'unit':unit, 'bars1':bars1, 'bars2':bars2, 'bars3':bars3, 'bars4':bars4,'classroom':classroom, 'lesson_list': lesson_list,}, context_instance=RequestContext(request))
     
+
+# 積分排行榜
+class RankListView(ListView):
+    context_object_name = 'datas'
+    #paginate_by = 100
+    template_name = 'student/rank_list.html'
+    def get_queryset(self):
+        datas = []
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for enroll in enrolls:
+            try:
+                profile = Profile.objects.get(user_id=enroll.student_id)
+                if self.kwargs['kind'] == "0":
+                    value = profile.work + profile.assistant + profile.debug + profile.creative
+                    datas.append([enroll, value])
+                elif self.kwargs['kind'] == "1":
+                    datas.append([enroll, profile.work])
+                elif self.kwargs['kind'] == "2":
+                    datas.append([enroll, profile.assistant])
+                elif self.kwargs['kind'] == "3":
+                    datas.append([enroll, profile.debug])
+                elif self.kwargs['kind'] == "4":
+                    datas.append([enroll, profile.creative])
+            except ObjectDoesNotExist:
+                f
+        def getKey(custom):
+            return custom[1], custom[0].seat	
+        datas = sorted(datas, key=getKey, reverse=True)				
+        return datas
+		
+    def get_context_data(self, **kwargs):
+        context = super(RankListView, self).get_context_data(**kwargs)
+        context['kind'] = self.kwargs['kind']
+        return context	

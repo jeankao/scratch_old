@@ -259,19 +259,17 @@ class RankListView(ListView):
     template_name = 'show/ranklist.html'
     def get_queryset(self):
         def getKey(custom):
-            return custom[3]	
+            return custom[2]	
         lists = []
-        rank = 0
         shows = ShowGroup.objects.filter(classroom_id=self.kwargs['classroom_id'])
         for show in shows :
-            rank = rank + 1
             students = Enroll.objects.filter(group_show=show.id)
             reviews = ShowReview.objects.filter(show_id=show.id, done=True)	
             if reviews.count() > 0 :			
                 score = reviews.aggregate(Sum('score'+self.kwargs['rank_id'])).values()[0]/reviews.count()
             else :
                 score = 0
-            lists.append([rank, show, students, score, reviews.count(), self.kwargs['rank_id']])
+            lists.append([show, students, score, reviews.count(), self.kwargs['rank_id']])
             lists= sorted(lists, key=getKey, reverse=True)
         # 記錄系統事件
         log = Log(user_id=self.request.user.id, event=u'查看創意秀排行榜<'+self.kwargs['rank_id']+'>')

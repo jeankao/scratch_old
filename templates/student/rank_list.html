@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
 {% block content %}
+{% if kind == "0" %}
+<h1>總積分排行</h1>
+{% elif kind == "1" %}
+<h1>作業上傳積分排行</h1>
+{% elif kind == "2" %}
+<h1>小老師積分排行</h1>
+{% elif kind == "3" %}
+<h1>除錯積分排行</h1>
+{% elif kind == "4" %}
+<h1>創意秀積分排行</h1>
+{% endif %}
+
+
+
         <table>
             <tr>
                 <td>姓名</td>
