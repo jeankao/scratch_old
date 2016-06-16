@@ -23,17 +23,19 @@ urlpatterns = [
     url(r'^score/(?P<classroom_id>\d+)/(?P<index>\d+)/$', 'teacher.views.score'),   
     url(r'^work/group/(?P<lesson>\d+)/(?P<classroom_id>\d+)/$', 'teacher.views.work_group'),   	
 
-    
-    #url(r'^exam/(?P<classroom_id>\d+)/$', 'teacher.views.exam_list'),
-	#url(r'^exam_detail/(?P<student_id>\d+)/(?P<exam_id>\d+)/$', 'teacher.views.exam_detail'), 
+    #測驗卷
+    url(r'^exam/(?P<classroom_id>\d+)/$', 'teacher.views.exam_list'),
+	url(r'^exam_detail/(?P<classroom_id>\d+)/(?P<student_id>\d+)/(?P<exam_id>\d+)/$', 'teacher.views.exam_detail'), 
     
     # 心得
     url(r'^memo/(?P<classroom_id>\d+)/$', 'teacher.views.memo'),	
 	url(r'^check/(?P<user_id>[^/]+)/(?P<unit>[^/]+)/(?P<classroom_id>\d+)/$', 'teacher.views.check'), 	
-    #url(r'^grade/(?P<classroom_id>\d+)/$', 'teacher.views.grade'),
-    #url(r'^grade1/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit1'),
-    #url(r'^grade2/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit2'),
-    #url(r'^grade3/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit3'),
-    #url(r'^grade4/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit4'),	
+	
+	#結算成績
+    url(r'^grade/(?P<classroom_id>\d+)/$', 'teacher.views.grade'),
+    url(r'^grade1/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit1'),
+    url(r'^grade2/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit2'),
+    url(r'^grade3/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit3'),
+    url(r'^grade4/(?P<classroom_id>\d+)/$', 'teacher.views.grade_unit4'),	
 	
 ]

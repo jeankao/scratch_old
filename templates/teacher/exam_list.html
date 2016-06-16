@@ -24,13 +24,13 @@
             <tr>
             <td>{{enroll.seat}}){{enroll.student.first_name}}</td>
             <td>{% widthratio exam.0 exam.1 1 %}</td>
-            <td><a href="/teacher/exam_detail/{{enroll.student.id}}/1">{{exam.1}}</td>
+            <td><a href="/teacher/exam_detail/{{classroom_id}}/{{enroll.student.id}}/1">{{exam.1}}</td>
             <td>{{enroll.seat}}){{enroll.student.first_name}}</td>			
             <td>{% widthratio exam.2 exam.3 1 %}</td>
-            <td><a href="/teacher/exam_detail/{{enroll.student.id}}/2">{{exam.3}}</td>
+            <td><a href="/teacher/exam_detail/{{classroom_id}}/{{enroll.student.id}}/2">{{exam.3}}</td>
             <td>{{enroll.seat}}){{enroll.student.first_name}}</td>			
             <td>{% widthratio exam.4 exam.5 1 %}</td>
-            <td><a href="/teacher/exam_detail/{{enroll.student.id}}/3">{{exam.5}}</td>			
+            <td><a href="/teacher/exam_detail/{{classroom_id}}/{{enroll.student.id}}/3">{{exam.5}}</td>			
             </tr>
         {% endfor %}
         </table>

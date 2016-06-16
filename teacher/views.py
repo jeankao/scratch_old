@@ -303,6 +303,9 @@ def memo(request, classroom_id):
             return redirect("homepage")    
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
         classroom_name = Classroom.objects.get(id=classroom_id).name
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查閱心得<'+classroom_name+'>')
+        log.save()  
         return render_to_response('teacher/memo.html', {'enrolls':enrolls, 'classroom_name':classroom_name}, context_instance=RequestContext(request))
 
 # 評分某同學某進度心得
@@ -342,6 +345,10 @@ def check(request, user_id, unit,classroom_id):
                 enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
                 enroll.score_memo1=form.cleaned_data['score_memo1']
                 enroll.save()
+                
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u'批改12堂課心得<'+user_name+'>')
+                log.save()                  
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -357,6 +364,10 @@ def check(request, user_id, unit,classroom_id):
                 enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
                 enroll.score_memo2=form.cleaned_data['score_memo2']
                 enroll.save()
+
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u'批改實戰入門心得<'+user_name+'>')
+                log.save()      
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -372,6 +383,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
                 enroll.score_memo3=form.cleaned_data['score_memo3']
                 enroll.save()
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u'批改實戰進擊心得<'+user_name+'>')
+                log.save() 
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -388,7 +402,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
                 enroll.score_memo4=form.cleaned_data['score_memo4']
                 enroll.save()
-						
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u'批改實戰高手心得<'+user_name+'>')
+                log.save() 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
                 else:
@@ -396,5 +412,290 @@ def check(request, user_id, unit,classroom_id):
         else:
             enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
             form = CheckForm4(instance=enroll)	
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'查閱個人心得<'+user_name+'>')
+    log.save()  
     return render_to_response('teacher/check.html', {'form':form, 'works':works, 'lesson_list':lesson_list, 'user': user, 'unit':unit, 'classroom_id':classroom_id}, context_instance=RequestContext(request))
 
+# 查閱全班測驗卷成績
+def exam_list(request, classroom_id):
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
+        classroom_name=""
+        enroll_exam = []		
+        for enroll in enrolls:
+            classroom_name = enroll.classroom.name
+            exam_list = []
+            for exam_id in range(3):
+                exams = Exam.objects.filter(student_id=enroll.student_id, exam_id=exam_id+1)
+                total = 0
+                times = 0
+                for exam in exams:
+                    total += exam.score
+                    times += 1
+                exam_list.append(total)
+                exam_list.append(times)
+            enroll_exam.append([enroll, exam_list])
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查閱測驗卷成績<'+classroom_name+'>')
+        log.save() 	
+        return render_to_response('teacher/exam_list.html', {'classroom_id':classroom_id, 'classroom_name':classroom_name, 'enroll_exam':enroll_exam}, context_instance=RequestContext(request))
+
+# 查詢某項測驗的所有資料
+def exam_detail(request, classroom_id, student_id, exam_id):
+        exams = Exam.objects.filter(student_id=student_id, exam_id=exam_id)
+        enroll = Enroll.objects.get(classroom_id=classroom_id, student_id=student_id)
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'檢視測驗資料<'+exam_id+'><'+enroll.student.first_name+'>')
+        log.save() 	        
+        return render_to_response('teacher/exam_detail.html', {'exams': exams, 'enroll':enroll}, context_instance=RequestContext(request))
+		
+# 結算成績
+@login_required
+def grade(request, classroom_id):
+        classroom = Classroom.objects.get(id=classroom_id)
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'結算成績<'+classroom.name+'>')
+        log.save() 	                
+        return render_to_response('teacher/grade.html', {'classroom': classroom}, context_instance=RequestContext(request))
+
+@login_required
+def grade_unit1(request, classroom_id):
+        classroom = Classroom.objects.get(id=classroom_id)
+        if not request.user.id == classroom.teacher_id:
+            return redirect("/")
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom_name=""
+        enroll_group = {}
+        data = []
+        for enroll in enrolls:
+            enroll_score = []
+            enroll_grade = []
+            classroom_name = enroll.classroom.name
+            # 17個作品
+            for i in range(17):
+                try :
+                    work = Work.objects.get(user_id=enroll.student_id, index=i+1)
+                    if work.score == -1 :
+                        score=0
+                    else :
+                        score = work.score
+                    enroll_score.append(work.score)
+                    enroll_grade.append(score/25.0)
+                except ObjectDoesNotExist:
+                    enroll_score.append('缺')
+                    enroll_grade.append(0)
+            # 3個測驗
+            for i in range(3):
+                exams = Exam.objects.filter(student_id=enroll.student_id, exam_id=i+1)
+                if not exams.exists():
+                    enroll_score.append(0)
+                    enroll_grade.append(0)					
+                else:
+                    total = 0
+                    times = 0
+                    for exam in exams:
+                        total += exam.score
+                        times += 1
+                    if times > 0 :
+                        average = total/times
+                        enroll_score.append(average)
+                        enroll_grade.append(average/25.0)					
+                    else:
+                        enroll_score.append(0)
+                        enroll_grade.append(0)
+            # 1個心得
+            enroll_score.append(enroll.score_memo1)
+            enroll_grade.append(enroll.score_memo1/10.0)
+			      # 1個積分
+            profile = Profile.objects.get(user=enroll.student)
+            point = profile.work + profile.assistant + profile.creative + profile.debug
+            enroll_score.append(point)
+            if point * 0.12 > 10:
+                enroll_grade.append(10)
+            else :
+                enroll_grade.append(point*0.12)
+            score = int(sum(enroll_grade))
+				
+            
+            if enroll_group.has_key(enroll.group):
+                enroll_group[enroll.group].append([enroll.student_id, score])
+            else:
+                enroll_group[enroll.group] = [[enroll.student_id, score]]        
+
+            data.append([enroll, enroll_score, enroll_grade, score])            
+     
+        i = 0
+        for enroll in enrolls:
+            group_total = 0
+            for group in enroll_group[enroll.group]:
+                group_total += group[1]
+            group_people = len(enroll_group[enroll.group])
+            group_score = group_total / group_people
+            data[i].append(group_score)
+            i = i + 1 
+
+        return render_to_response('teacher/grade_unit1.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+
+@login_required
+def grade_unit2(request, classroom_id):
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom_name=""
+        data = []
+        enroll_group = {}        
+        for enroll in enrolls:
+            enroll_score = []
+            enroll_grade = []
+            classroom_name = enroll.classroom.name
+            # 8個作品
+            for i in range(8):
+                try :
+                    work = Work.objects.get(user_id=enroll.student_id, index=i+1+17)
+                    if work.score == -1 :
+                        score=0
+                    else :
+                        score = work.score
+                    enroll_score.append(work.score)
+                    enroll_grade.append(score/10)
+                except ObjectDoesNotExist:
+                    enroll_score.append('缺')
+                    enroll_grade.append(0)
+            # 1個心得
+            enroll_score.append(enroll.score_memo2)
+            enroll_grade.append(enroll.score_memo2/10.0)
+			# 1個積分
+            profile = Profile.objects.get(user=enroll.student)
+            point = profile.work + profile.assistant + profile.creative + profile.debug
+            enroll_score.append(point)
+            if point * 0.1 > 10:
+                enroll_grade.append(10)
+            else :
+                enroll_grade.append(point*0.1)
+            score = int(sum(enroll_grade))
+				
+            if enroll_group.has_key(enroll.group):
+                enroll_group[enroll.group].append([enroll.student_id, score])
+            else:
+                enroll_group[enroll.group] = [[enroll.student_id, score]]        
+
+            data.append([enroll, enroll_score, enroll_grade, score])            
+     
+        i = 0
+        for enroll in enrolls:
+            group_total = 0
+            for group in enroll_group[enroll.group]:
+                group_total += group[1]
+            group_people = len(enroll_group[enroll.group])
+            group_score = group_total / group_people
+            data[i].append(group_score)
+            i = i + 1 
+
+        return render_to_response('teacher/grade_unit2.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+
+@login_required
+def grade_unit3(request, classroom_id):
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom_name=""
+        data = []
+        enroll_group = {}        
+        for enroll in enrolls:
+            enroll_score = []
+            enroll_grade = []
+            classroom_name = enroll.classroom.name
+            # 8個作品
+            for i in range(8):
+                try :
+                    work = Work.objects.get(user_id=enroll.student_id, index=i+1+17+8)
+                    if work.score == -1 :
+                        score=0
+                    else :
+                        score = work.score
+                    enroll_score.append(work.score)
+                    enroll_grade.append(score/10)
+                except ObjectDoesNotExist:
+                    enroll_score.append('缺')
+                    enroll_grade.append(0)
+            # 1個心得
+            enroll_score.append(enroll.score_memo3)
+            enroll_grade.append(enroll.score_memo3/10.0)
+			# 1個積分
+            profile = Profile.objects.get(user=enroll.student)
+            point = profile.work + profile.assistant + profile.creative + profile.debug
+            enroll_score.append(point)
+            if point * 0.08 > 10:
+                enroll_grade.append(10)
+            else :
+                enroll_grade.append(point*0.08)
+            score = int(sum(enroll_grade))
+				
+            if enroll_group.has_key(enroll.group):
+                enroll_group[enroll.group].append([enroll.student_id, score])
+            else:
+                enroll_group[enroll.group] = [[enroll.student_id, score]]        
+
+            data.append([enroll, enroll_score, enroll_grade, score])            
+     
+        i = 0
+        for enroll in enrolls:
+            group_total = 0
+            for group in enroll_group[enroll.group]:
+                group_total += group[1]
+            group_people = len(enroll_group[enroll.group])
+            group_score = group_total / group_people
+            data[i].append(group_score)
+            i = i + 1 
+
+        return render_to_response('teacher/grade_unit3.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+
+@login_required
+def grade_unit4(request, classroom_id):
+        enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom_name=""
+        data = []
+        enroll_group = {}
+        for enroll in enrolls:
+            enroll_score = []
+            enroll_grade = []
+            classroom_name = enroll.classroom.name
+            # 8個作品
+            for i in range(8):
+                try :
+                    work = Work.objects.get(user_id=enroll.student_id, index=i+1+17+8+8)
+                    if work.score == -1 :
+                        score=0
+                    else :
+                        score = work.score
+                    enroll_score.append(work.score)
+                    enroll_grade.append(score/10)
+                except ObjectDoesNotExist:
+                    enroll_score.append("缺")
+                    enroll_grade.append(0)
+            # 1個心得
+            enroll_score.append(enroll.score_memo4)
+            enroll_grade.append(enroll.score_memo4/10.0)
+			      # 1個積分
+            profile = Profile.objects.get(user=enroll.student)
+            point = profile.work + profile.assistant + profile.creative + profile.debug
+            enroll_score.append(point)
+            if point * 0.06 > 10:
+                enroll_grade.append(10)
+            else :
+                enroll_grade.append(point*0.06)
+            score = int(sum(enroll_grade))
+            
+            if enroll_group.has_key(enroll.group):
+                enroll_group[enroll.group].append([enroll.student_id, score])
+            else:
+                enroll_group[enroll.group] = [[enroll.student_id, score]]        
+
+            data.append([enroll, enroll_score, enroll_grade, score])            
+     
+        i = 0
+        for enroll in enrolls:
+            group_total = 0
+            for group in enroll_group[enroll.group]:
+                group_total += group[1]
+            group_people = len(enroll_group[enroll.group])
+            group_score = group_total / group_people
+            data[i].append(group_score)
+            i = i + 1                                
+        return render_to_response('teacher/grade_unit4.html', {'enroll_group':enroll_group, 'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
