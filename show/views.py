@@ -89,10 +89,10 @@ def group_delete(request, group_id, classroom_id):
         classroom_name = Classroom.objects.get(id=classroom_id).name    
         group_name = ShowGroup(id=group_id).name    
         group = ShowGroup.objects.get(id=group_id)
-        group.delete()
         # 記錄系統事件
         log = Log(user_id=request.user.id, event=u'刪除創意秀組別<'+group_name+'><'+classroom_name+'>')
         log.save()     
+        group.delete()
         return redirect('/show/group/'+classroom_id)    
 
 # 開放選組
@@ -304,6 +304,8 @@ class TeacherListView(ListView):
         log.save()  
 		
         return lists
+        
+        
 
 # 藝廊                  
 class GalleryListView(ListView):
@@ -312,9 +314,12 @@ class GalleryListView(ListView):
     template_name = 'show/gallerylist.html'
     def get_queryset(self):
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'查看藝廊')
+        if self.request.user.id > 0 :
+            log = Log(user_id=self.request.user.id, event=u'查看藝廊')
+        else :
+            log = Log(user_id=0,event=u'查看藝廊')
         log.save() 
-
+        
         return ShowGroup.objects.filter(open=True).order_by('-publish')
 		
 # 查看藝郎某項目
@@ -325,13 +330,19 @@ def GalleryDetail(request, show_id):
     score2 = reviews.aggregate(Sum('score2')).values()[0]
     score3 = reviews.aggregate(Sum('score3')).values()[0]
     if reviews.count() > 0 :
-        scores = [score1/ reviews.count(), score2/ reviews.count(), score3/ reviews.count(),  reviews.count()]
+        score1 = score1 / reviews.count()     
+        score2 = score2 / reviews.count()  
+        score3 = score3 / reviews.count()          
+        scores = [math.ceil(score1*10)/10, math.ceil(score2*10)/10, math.ceil(score3*10)/10,  reviews.count()]
     else :
-        scores = [0,0,0,0]
+        scores = [0,0,0,0]        
     members = Enroll.objects.filter(group_show=show_id)
     #context = self.get_context_data(show=show, form=form, members=members, review=self.object, scores=scores, score=score, reviews=reviews)
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'查看藝廊<'+show.name+'>')
+    if request.user.id > 0 :
+        log = Log(user_id=request.user.id, event=u'查看藝廊<'+show.name+'>')
+    else :
+        log = Log(user_id=0, event=u'查看藝廊<'+show.name+'>')
     log.save() 
     
     return render(request, 'show/gallerydetail.html', {'show': show, 'members':members, 'scores':scores, 'reviews':reviews, 'teacher':is_teacher(request.user, show.classroom_id)})

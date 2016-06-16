@@ -28,5 +28,5 @@ urlpatterns = [
     #設定教師
     url(r'^teacher/make/$', views.make, name='make'),    
     #系統事件記錄
-    url(r'^event/$', views.EventListView.as_view()),        
+    url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),            
 ]

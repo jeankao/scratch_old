@@ -20,7 +20,7 @@ from student.lesson import *
 from account.avatar import *
 #from django.db import IntegrityError
 from account.models import Profile, PointHistory
-#from django.http import JsonResponse
+from django.http import JsonResponse
 
 # 判斷是否為授課教師
 def is_teacher(user, classroom_id):
@@ -492,13 +492,84 @@ class RankListView(ListView):
                 elif self.kwargs['kind'] == "4":
                     datas.append([enroll, profile.creative])
             except ObjectDoesNotExist:
-                f
+                pass
         def getKey(custom):
             return custom[1], custom[0].seat	
-        datas = sorted(datas, key=getKey, reverse=True)				
+        datas = sorted(datas, key=getKey, reverse=True)		
+        # 記錄系統事件
+        log = Log(user_id=self.request.user.id, event=u'查看積分排行榜<'+self.kwargs['kind']+'>')
+        log.save()          
         return datas
 		
     def get_context_data(self, **kwargs):
         context = super(RankListView, self).get_context_data(**kwargs)
         context['kind'] = self.kwargs['kind']
         return context	
+
+# 測驗卷
+def exam(request):
+        return render_to_response('student/exam.html', context_instance=RequestContext(request))
+
+# 測驗卷得分
+def exam_score(request):
+        exams = Exam.objects.filter(student_id=request.user.id)
+        return render_to_response('student/exam_score.html', {'exams':exams} , context_instance=RequestContext(request))
+
+# 測驗卷檢查答案		
+def exam_check(request):
+    exam_id = request.POST.get('examid')
+    user_answer = request.POST.get('answer').split(",")
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'繳交測驗卷<'+exam_id+'>')
+    log.save()      
+    if exam_id == "1":
+        answer = "C,A,D,C,C,A,B,B,D,D"
+        answer_list = answer.split(",")
+        ''' 儲存答案 '''
+        ua_test = ""
+        score = 0
+        for i in range(10) :
+            if user_answer[i] == answer_list[i] :
+                score = score + 10
+            i = i + 1
+            ua_test = "".join(user_answer)
+            '''ua_test = ua_test + user_answer[i]
+            '''
+        exam = Exam(exam_id=1, student_id=request.user.id, answer=ua_test, score=score)
+        exam.save()
+        ''' 回傳正確答案 '''
+        return JsonResponse({'status':'ok','answer':answer}, safe=False)	
+    elif exam_id == "2":
+        answer = "B,C,C,A,D,B,A,D,B,C"
+        answer_list = answer.split(",")
+        ''' 儲存答案 '''
+        ua_test = ""
+        score = 0
+        for i in range(10) :
+            if user_answer[i] == answer_list[i] :
+                score = score + 10
+            i = i + 1
+            ua_test = "".join(user_answer)
+            '''ua_test = ua_test + user_answer[i]
+            '''
+        exam = Exam(exam_id=2, student_id=request.user.id, answer=ua_test, score=score)
+        exam.save()	
+        return JsonResponse({'status':'ok','answer':answer}, safe=False)
+    elif exam_id == "3":
+        answer = "D,C,A,B,D,C,D,A,D,B"
+        answer_list = answer.split(",")
+        ''' 儲存答案 '''
+        ua_test = ""
+        score = 0
+        for i in range(10) :
+            if user_answer[i] == answer_list[i] :
+                score = score + 10
+            i = i + 1
+            ua_test = "".join(user_answer)
+            '''ua_test = ua_test + user_answer[i]
+            '''
+        exam = Exam(exam_id=3, student_id=request.user.id, answer=ua_test, score=score)
+        exam.save()	
+        return JsonResponse({'status':'ok','answer':answer}, safe=False)
+    else:
+        return JsonResponse({'status':'ko'}, safe=False)

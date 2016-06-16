@@ -1,3 +1,4 @@
+{% load tag %}
 <!DOCTYPE html>
 <!--
 Template Name: Abele
@@ -40,13 +41,11 @@ Licence URI: http://www.os-templates.com/template-terms
 		<li><a href="/account/userlist">帳號管理</a></li>
 			{% endif %}				        
 		        <li><a href="/student/classroom">班級</a></li>	
-			{% for group in user.groups.all %}
-				{% if group.name == 'teacher' %}
+            {% if request.user|has_group:"teacher" %} 	
 		<li><a href="/teacher/classroom">教師管理</a></li>
-		<li><a href="/account/event">事件</a></a></li>		
-				{% endif %}		
-			{% endfor %}
-		{% endif %}
+		<li><a href="/account/event/0">事件</a></a></li>		
+			{% endif %}		
+	    {% endif %}
       </ul>
     </div>
     <div class="fl_right">
@@ -131,7 +130,7 @@ Licence URI: http://www.os-templates.com/template-terms
 <div class="wrapper row6">
   <div id="copyright" class="clear"> 
     <!-- ################################################################################################ -->
-    <p class="fl_left">Copyright &copy; 2016 - All Rights Reserved - <a href="#">高慧君</a></p>
+    <p class="fl_left">Copyright &copy; 2016 - All Rights Reserved - <a href="#">臺北市立南港高中高慧君老師製作</a></p>
     <p class="fl_right">Template by <a target="_blank" href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a> <a href="http://www.freepik.com">Designed by Freepik</a></p>
     <!-- ################################################################################################ -->
   </div>

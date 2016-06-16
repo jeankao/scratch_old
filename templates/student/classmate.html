@@ -11,6 +11,11 @@
             <td>姓名</td>
             <td>組別</td>
             <td>最新登入</td>
+			{% for group in user.groups.all %}
+			{% if group.name == 'teacher' %}            
+            <td>事件</td>
+            {% endif %}
+            {% endfor %}
         </tr>
         {% for enroll, group_name in enroll_group %}
             <tr>
@@ -28,6 +33,11 @@
             <td>{{enroll.student.first_name}}</td>
             <td>{{group_name}}</td>
             <td>{{enroll.student.last_login}}</td>
+			{% for group in user.groups.all %}
+			{% if group.name == 'teacher' %}              
+            <td><a href="/account/event/{{enroll.student.id}}">事件</a></td>
+            {% endif %}
+            {% endfor %}            
             </tr>
         {% endfor %}
         </table>

@@ -10,15 +10,10 @@ class ShowGroup(models.Model):
 	
     title = models.CharField(max_length=250)
     number = models.CharField(max_length=30)    
-    author_id = models.IntegerField(default=0)
     body = models.TextField()
     publish = models.DateTimeField(default=timezone.now)
     done = models.BooleanField(default=False)
     open =  models.BooleanField(default=False)
-
-    @property
-    def author(self):
-        return User.objects.get(id=self.author_id)
 
 # 評分
 class ShowReview(models.Model):

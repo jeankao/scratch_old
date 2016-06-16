@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %} Students {% endblock %}
 {% block content %}
+{% load tag %}
 {% if group_show_open %}
 <a href="../add/{{classroom_id}}">新增組別</a>
 {% endif %}
@@ -59,13 +60,11 @@
 				<td>
 				<a href="/show/score/{{group.0.id}}">查閱</a>
 				</td>
-			    {% for role_group in user.groups.all %}
-				{% if role_group.name == 'teacher' %}				
+                {% if request.user|has_group:"teacher" %} 			
 				<td>{% if group.0.open %}<a href="#" data-showid="{{ group.0.id }}" data-action="close" class="open">取消</a>{% else %}<a href="#" data-showid="{{  group.0.id }}" data-action="open" class="open">開放</a>{% endif %}</td>
-				{% else %}
-                <td>{% if group.0.open %}已分享{% else %}無{% endif %}	
-				{% endif %}		
-			    {% endfor %}
+			    {% else %}
+			    <td>{% if group.0.open %}已分享{% else %}無{% endif %}</t>
+			    {% endif %}
                 </tr>        
         {% endfor %}
 </table>

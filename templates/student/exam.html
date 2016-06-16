@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %} Exam {% endblock %}
 {% block head_ext %}
   <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -42,20 +42,28 @@ article {
 <script src='//assets.codepen.io/assets/common/stopExecutionOnTimeout.js?t=1'></script>
 <!-- <script src='/static/js/youtube.util.js'></script> -->
 <script>
+function lesson_log(tabname) {
+    $.post('/student/lesson/log/9/',
+        {'tabname': tabname},
+        function(data){}
+    );
+}
 $(function () {
 	$('ul.tabs li:first').addClass('active');
+    lesson_log($('ul.tabs li:first').find('a').text());	
 	$('.block article').hide();
 	$('.block article:first').show();
 	$('ul.tabs li').on('click', function () {
 		$('ul.tabs li').removeClass('active');
 		$(this).addClass('active');
 		$('.block article').hide();
-		var activeTab = $(this).find('a').attr('href');
-		if (activeTab == "#tab4") {
+		var activeTab = $(this).find('a');
+		if (activeTab.attr('href') == "#tab4") {
 			$("#scoreboard").html("成績更新中，請稍待...");
 			$("#scoreboard").load("/student/exam/score");
 		}
-		$(activeTab).show();
+		$(activeTab.attr('href')).show();
+        lesson_log(activeTab.text());		
 		return false;
 	});
 	//------------------------------------------------------------------------
@@ -71,9 +79,7 @@ $(function () {
     <li><a href="#tab1">測驗：變數</a></li>
     <li><a href="#tab2">測驗：選擇結構</a></li>		
     <li><a href="#tab3">測驗：重複結構</a></li>	
-    {% if user.is_authenticated %}	
     <li><a href="#tab4">成績</a></li>		
-	{% endif %}
 	</ul>
   <div class="clr"></div>
   <section class="block">

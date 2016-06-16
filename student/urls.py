@@ -34,9 +34,11 @@ urlpatterns = [
     url(r'^group/work/(?P<lesson>[^/]+)/(?P<classroom_id>[^/]+)$', 'student.views.work_group'),  
     #查詢該作業所有同學心得
     url(r'^memo/(?P<classroom_id>[^/]+)/(?P<index>[^/]+)/$', 'student.views.memo'),   
-    #url(r'^exam/$', 'student.views.exam'),      
-    #url(r'^exam_check/$', 'student.views.exam_check'),     
-    #url(r'^exam/score/$', 'student.views.exam_score'),  	
+    
+    #測驗
+    url(r'^exam/$', 'student.views.exam'),      
+    url(r'^exam_check/$', 'student.views.exam_check'),     
+    url(r'^exam/score/$', 'student.views.exam_score'),  	
 
     #積分排行榜
     url(r'^rank/(?P<kind>[^/]+)/(?P<classroom_id>[^/]+)/$', views.RankListView.as_view(), name='rank'), 

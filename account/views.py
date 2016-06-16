@@ -20,6 +20,7 @@ def homepage(request):
 # 使用者登入功能
 def user_login(request):
         message = None
+        test = ""
         if request.method == "POST":
                 form = LoginForm(request.POST)
                 if form.is_valid():
@@ -28,6 +29,10 @@ def user_login(request):
                         user = authenticate(username=username, password=password)
                         if user is not None:
                                 if user.is_active:
+                                        if user.id == 1:
+                                            if user.first_name == "": 
+                                                user.first_name = "管理員"
+                                                user.save()
                                         # 登入成功，導到大廳
                                         login(request, user)
                                         # 記錄系統事件
@@ -43,7 +48,7 @@ def user_login(request):
                             message = "無效的帳號或密碼!"
         else:
                 form = LoginForm()
-        return render_to_response('registration/login.html', {'message': message, 'form': form}, context_instance=RequestContext(request))
+        return render_to_response('registration/login.html', {'test': test, 'message': message, 'form': form}, context_instance=RequestContext(request))
 
 # 記錄登出
 def suss_logout(request, user_id):
@@ -241,7 +246,10 @@ class EventListView(ListView):
     def get_queryset(self):    
         # 記錄系統事件
         log = Log(user_id=self.request.user.id, event='查看事件')
-        log.save()        
-        queryset = Log.objects.order_by('-id')
+        log.save()       
+        if self.kwargs['user_id'] == "0":
+            queryset = Log.objects.order_by('-id')
+        else :
+            queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
         return queryset
 	
