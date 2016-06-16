@@ -419,6 +419,9 @@ def check(request, user_id, unit,classroom_id):
 
 # 查閱全班測驗卷成績
 def exam_list(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
         classroom_name=""
         enroll_exam = []		
@@ -442,6 +445,9 @@ def exam_list(request, classroom_id):
 
 # 查詢某項測驗的所有資料
 def exam_detail(request, classroom_id, student_id, exam_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")
         exams = Exam.objects.filter(student_id=student_id, exam_id=exam_id)
         enroll = Enroll.objects.get(classroom_id=classroom_id, student_id=student_id)
         # 記錄系統事件
@@ -452,6 +458,9 @@ def exam_detail(request, classroom_id, student_id, exam_id):
 # 結算成績
 @login_required
 def grade(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")
         classroom = Classroom.objects.get(id=classroom_id)
         # 記錄系統事件
         log = Log(user_id=request.user.id, event=u'結算成績<'+classroom.name+'>')
@@ -460,6 +469,9 @@ def grade(request, classroom_id):
 
 @login_required
 def grade_unit1(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")    
         classroom = Classroom.objects.get(id=classroom_id)
         if not request.user.id == classroom.teacher_id:
             return redirect("/")
@@ -534,11 +546,18 @@ def grade_unit1(request, classroom_id):
             data[i].append(group_score)
             i = i + 1 
 
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看成績<12堂課><'+classroom.name+'>')
+        log.save() 	
         return render_to_response('teacher/grade_unit1.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit2(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")  
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom = Classroom.objects.get(id=classroom_id)        
         classroom_name=""
         data = []
         enroll_group = {}        
@@ -587,13 +606,21 @@ def grade_unit2(request, classroom_id):
             group_people = len(enroll_group[enroll.group])
             group_score = group_total / group_people
             data[i].append(group_score)
-            i = i + 1 
+            i = i + 1
+            
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看成績<實戰入門><'+classroom.name+'>')
+        log.save() 
 
         return render_to_response('teacher/grade_unit2.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit3(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")     
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom = Classroom.objects.get(id=classroom_id)        
         classroom_name=""
         data = []
         enroll_group = {}        
@@ -644,11 +671,19 @@ def grade_unit3(request, classroom_id):
             data[i].append(group_score)
             i = i + 1 
 
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看成績<實戰進擊><'+classroom.name+'>')
+        log.save() 
+
         return render_to_response('teacher/grade_unit3.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit4(request, classroom_id):
+        # 限本班任課教師
+        if not is_teacher(request.user, classroom_id):
+            return redirect("homepage")     
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
+        classroom = Classroom.objects.get(id=classroom_id)        
         classroom_name=""
         data = []
         enroll_group = {}
@@ -697,5 +732,10 @@ def grade_unit4(request, classroom_id):
             group_people = len(enroll_group[enroll.group])
             group_score = group_total / group_people
             data[i].append(group_score)
-            i = i + 1                                
+            i = i + 1 
+            
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event=u'查看成<績實戰高手><'+classroom.name+'>')
+        log.save() 
+            
         return render_to_response('teacher/grade_unit4.html', {'enroll_group':enroll_group, 'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))

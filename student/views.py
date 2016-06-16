@@ -204,7 +204,7 @@ def lessons(request, lesson):
             user_id = 0
         # 記錄系統事件 
         if lesson == "1":
-            log = Log(user_id=user_id, event='查看課程頁面<Scratch12堂課>')
+            log = Log(user_id=user_id, event='查看課程頁面<12堂課>')
         elif lesson == "2":
             log = Log(user_id=user_id, event='查看課程頁面<實戰入門>')          
         elif lesson == "3":

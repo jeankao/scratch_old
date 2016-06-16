@@ -12,6 +12,9 @@ from account.templatetags import tag
 from django.views.generic import ListView
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
+import sys, os
+from django.http import HttpResponse
+from mimetypes import MimeTypes
 
 # 網站首頁
 def homepage(request):
@@ -253,3 +256,33 @@ class EventListView(ListView):
             queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
         return queryset
 	
+# 下載檔案
+def download(request, filename):
+    #down_file = File.objects.get(name = filename)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DOWNLOAD_URL = BASE_DIR+"/download/"
+    file_path = DOWNLOAD_URL + filename
+    file_name = filename
+    fp = open(file_path, 'rb')
+    response = HttpResponse(fp.read())
+    fp.close()
+    mime = MimeTypes()
+    type, encoding = mime.guess_type(file_name)
+    if type is None:
+        type = 'application/octet-stream'
+    response['Content-Type'] = type
+    response['Content-Length'] = str(os.stat(file_path).st_size)
+    if encoding is not None:
+        response['Content-Encoding'] = encoding
+    if u'WebKit' in request.META['HTTP_USER_AGENT']:
+        filename_header = 'filename=%s' % file_name.encode('utf-8')
+    elif u'MSIE' in request.META['HTTP_USER_AGENT']:
+        filename_header = ''
+    else:
+        filename_header = 'filename*=UTF-8\'\'%s' % urllib.quote(file_name.encode('utf-8'))
+    response['Content-Disposition'] = 'attachment; ' + filename_header
+    # 記錄系統事件
+    log = Log(user_id=request.user.id, event=u'下載檔案<'+filename+'>')
+    log.save()     
+    return response
+
