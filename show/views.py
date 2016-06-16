@@ -17,6 +17,9 @@ from account.avatar import *
 from django.core.exceptions import ObjectDoesNotExist
 from collections import OrderedDict
 from django.http import JsonResponse
+import math
+
+
 def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
 
@@ -161,51 +164,57 @@ class ShowUpdateView(UpdateView):
             return redirect('homepage')
 
 # 評分
-def detail(request, show_id):
-        show = ShowGroup.objects.get(id=show_id)
-        try :
-           review = ShowReview.objects.get(show_id=show_id, student_id=request.user.id)
-        except ObjectDoesNotExist:
-            review = ShowReview(show_id=show_id, student_id=self.request.user.id)
-            review.save()
-        reviews = ShowReview.objects.filter(show_id=show_id, done=True)
+class ReviewUpdateView(UpdateView):
+    model = ShowReview
+    form_class = ReviewForm
+    template_name_suffix = '_review'
+
+    def get(self, request, **kwargs):
+        show = ShowGroup.objects.get(id=self.kwargs['show_id'])
+        self.object = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        reviews = ShowReview.objects.filter(show_id=self.kwargs['show_id'], done=True)
         score1 = reviews.aggregate(Sum('score1')).values()[0]
         score2 = reviews.aggregate(Sum('score2')).values()[0]
         score3 = reviews.aggregate(Sum('score3')).values()[0]
-        score = [review.score1, review.score2, review.score3]
+        score = [self.object.score1, self.object.score2,self.object.score3]
         if reviews.count() > 0 :
-            scores = [score1/ reviews.count(), score2/ reviews.count(), score3/ reviews.count(),  reviews.count()]
+            score1 = score1 / reviews.count()     
+            score2 = score2 / reviews.count()  
+            score3 = score3 / reviews.count()          
+            scores = [math.ceil(score1*10)/10, math.ceil(score2*10)/10, math.ceil(score3*10)/10,  reviews.count()]
+
         else :
             scores = [0,0,0,0]
-        members = Enroll.objects.filter(group_show=show_id)
-        
-        if request.method == 'POST':
-            form = ReviewForm(request.POST)
-            if form.is_valid():
-                review.score1 = form.cleaned_data['score1']
-                review.score2 = form.cleaned_data['score2']
-                review.score3 = form.cleaned_data['score3']
-                review.comment = form.cleaned_data['comment']
-                score = [review.score1, review.score2, review.score3]                
-                
-                if review.done == False:
-                    classroom_id = ShowGroup.objects.get(id=show_id).classroom_id
-                    member = Enroll.objects.get(classroom_id=classroom_id, student_id=request.user.id)
-                    # credit
-                    update_avatar(member.id, 4, 1)
-                    # History
-                    show = ShowGroup.objects.get(id=show_id)			
-                    history = PointHistory(user_id=member.student_id, kind=4, message=u'1分--評分創意秀<'+show.title+'>', url='/show/detail/'+str(show.id))
-                    history.save()
-                review.publish = timezone.now()
-                review.done = True
-                review.save()
-                # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'評分創意秀<'+show.name+'>')
-                log.save()        
-        else:
-            form = ReviewForm(instance=review)
-        return render_to_response('show/detail.html', {'form':form, 'reviews': reviews, 'show':show, 'scores': scores, 'score':score}, context_instance=RequestContext(request))
+        members = Enroll.objects.filter(group_show=self.kwargs['show_id'])
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(show=show, form=form, members=members, review=self.object, scores=scores, score=score, reviews=reviews)
+        return self.render_to_response(context)
+
+    def get_object(self, queryset=None):
+        obj = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        return obj
+	
+    def form_valid(self, form):
+        show = ShowGroup.objects.get(id=self.kwargs['show_id'])        
+        #save object
+        obj = form.save(commit=False)
+        if obj.done == False:
+            classroom_id = ShowGroup.objects.get(id=self.kwargs['show_id']).classroom_id
+            member = Enroll.objects.get(classroom_id=classroom_id, student_id=self.request.user.id)
+            # credit
+            update_avatar(member, 4, 1)
+            # History
+            show = ShowGroup.objects.get(id=self.kwargs['show_id'])			
+            history = PointHistory(user_id=member.student_id, kind=4, message=u'1分--評分創意秀<'+show.title+'>', url='/show/detail/'+str(show.id))
+            history.save()
+        obj.publish = timezone.now()
+        obj.done = True
+        obj.save()
+        # 記錄系統事件
+        log = Log(user_id=self.request.user.id, event=u'評分創意秀<'+show.name+'>')
+        log.save()        
+        return redirect('/show/detail/'+self.kwargs['show_id'])
 
 # 所有同學的評分		
 class ReviewListView(ListView):
@@ -217,6 +226,32 @@ class ReviewListView(ListView):
         log = Log(user_id=self.request.user.id, event=u'查看創意秀所有評分<'+show.name+'>')
         log.save()  
         return ShowReview.objects.filter(show_id=self.kwargs['show_id'])  		
+
+    def get_context_data(self, **kwargs):
+        ctx = super(ReviewListView, self).get_context_data(**kwargs)
+        try :
+           review = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        except ObjectDoesNotExist:
+            review = ShowReview(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+            review.save()        
+        show = ShowGroup.objects.get(id=self.kwargs['show_id']) 
+        members = Enroll.objects.filter(group_show=self.kwargs['show_id'])
+        reviews = ShowReview.objects.filter(show_id=self.kwargs['show_id'], done=True)
+        score1 = reviews.aggregate(Sum('score1')).values()[0]
+        score2 = reviews.aggregate(Sum('score2')).values()[0]
+        score3 = reviews.aggregate(Sum('score3')).values()[0]
+        score = [review.score1, review.score2, review.score3]
+        if reviews.count() > 0 :
+            score1 = score1 / reviews.count()     
+            score2 = score2 / reviews.count()  
+            score3 = score3 / reviews.count()          
+            scores = [math.ceil(score1*10)/10, math.ceil(score2*10)/10, math.ceil(score3*10)/10,  reviews.count()]
+        else :
+            scores = [0,0,0,0]        
+        ctx['scores'] = scores
+        ctx['show'] = show
+        ctx['members'] = members
+        return ctx
 
 # 排行榜
 class RankListView(ListView):
@@ -255,19 +290,22 @@ class TeacherListView(ListView):
         for enroll in enrolls:
             lists[enroll.id] = []	            
             shows = ShowGroup.objects.filter(classroom_id=self.kwargs['classroom_id'])
-            for show in shows:
-                members = Enroll.objects.filter(group_show=show.id)
-                try: 
-                    review = ShowReview.objects.get(show_id=show.id, student_id=enroll.student_id)
-                except ObjectDoesNotExist:
-                   review = ShowReview(show_id=show.id)
-                lists[enroll.id].append([enroll, review, show, members])
+            if not shows.exists():
+                lists[enroll.id].append([enroll])
+            else :
+                for show in shows:
+                    members = Enroll.objects.filter(group_show=show.id)
+                    try: 
+                        review = ShowReview.objects.get(show_id=show.id, student_id=enroll.student_id)
+                    except ObjectDoesNotExist:
+                        review = ShowReview(show_id=show.id)
+                    lists[enroll.id].append([enroll, review, show, members])
 		lists = OrderedDict(sorted(lists.items(), key=lambda x: x[1][0][0].seat))
         # 記錄系統事件
         log = Log(user_id=self.request.user.id, event=u'查看創意秀評分狀況<'+classroom_name+'>')
         log.save()  
 		
-        return lists		
+        return lists
 
 # 藝廊                  
 class GalleryListView(ListView):

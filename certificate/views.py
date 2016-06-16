@@ -255,7 +255,10 @@ def make(request):
                     enroll.certificate3 = False
                 elif unit == "4":
                     enroll.certificate4 = False	
-                os.remove(settings.BASE_DIR+"/static/certificate/"+unit+"/"+enroll_id+".jpg")	
+                try :
+                    os.remove(settings.BASE_DIR+"/static/certificate/"+unit+"/"+enroll_id+".jpg")	
+                except:
+                    pass
                 # 記錄系統事件
                 log = Log(user_id=request.user.id, event=u'取消證書<'+unit+'><'+enroll.student.first_name+'>')
                 log.save() 	                

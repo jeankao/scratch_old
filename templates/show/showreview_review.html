@@ -13,6 +13,10 @@
 {% endblock %}
 {% load tz %}
 {% block content %}
+            {% if form.errors %}
+            <h1>表單資料有誤</h1>
+            {% endif %}
+
   <h1>組別：{{show.name}}</h1>
   <h1>組員：{% for member in members %}<A href="/account/profile/{{member.student.id}}"><img src="/static/avatar/s{{ member.student.profile.avatar }}.png"></a>({{member.seat}}){{member.student.first_name}}{% endfor %}</h1>
   <h1>{{ show.title }}</h1>
@@ -26,7 +30,7 @@
   </p>
   {{ show.body|linebreaks }}
 <H1>評分</H1>
-  <form action="." method="post">
+  <form action="." method="post" onsubmit="return checkRegistration()">
 <table>
 <tr><th><label for="id_score1">美工設計:</label></th><th>{{form.score1}}</th></tr>
 <tr><th><label for="id_score2">程式難度:</label></th><th>{{form.score2}}</</th></tr>
@@ -49,6 +53,7 @@
 {% endfor %}
 {% endblock %}
 {% block userscript %}
+var content = document.getElementById('id_comment').value;    
 var scoreInputList = [
 	{id: 'id_score1', val: {{ score.0 }} }, 
 	{id: 'id_score2', val: {{ score.1 }} }, 
@@ -63,5 +68,17 @@ for (i = 0; i < slsize; ++i) {
 		step: 10,
 		value: si.val,
 	});
+	
+function checkRegistration(){
+    var form_valid = (document.getElementById('id_comment').value != '');
+    if(!form_valid){
+        alert('評語不能留白');
+        document.getElementById("id_comment").focus();
+        return false;
+    }
+    return true;
 }
+}
+
+
 {% endblock %}
