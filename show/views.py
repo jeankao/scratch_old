@@ -177,7 +177,7 @@ class ReviewUpdateView(UpdateView):
         try:
             self.object = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
         except ObjectDoesNotExist:
-            self.object = ShowReview(student_id=self.request.user.id)
+            self.object = ShowReview(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
             self.object.save()        
         reviews = ShowReview.objects.filter(show_id=self.kwargs['show_id'], done=True)
         score1 = reviews.aggregate(Sum('score1')).values()[0]
@@ -202,7 +202,7 @@ class ReviewUpdateView(UpdateView):
         try :
             obj = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
         except ObjectDoesNotExist:
-            obj = ShowReview(student_id=self.request.user.id)
+            obj = ShowReview(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
             obj.save()
         return obj
 	
@@ -214,7 +214,7 @@ class ReviewUpdateView(UpdateView):
             classroom_id = ShowGroup.objects.get(id=self.kwargs['show_id']).classroom_id
             member = Enroll.objects.get(classroom_id=classroom_id, student_id=self.request.user.id)
             # credit
-            update_avatar(member, 4, 1)
+            update_avatar(member.student, 4, 1)
             # History
             show = ShowGroup.objects.get(id=self.kwargs['show_id'])			
             history = PointHistory(user_id=member.student_id, kind=4, message=u'1分--評分創意秀<'+show.title+'>', url='/show/detail/'+str(show.id))
