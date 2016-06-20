@@ -37,3 +37,7 @@ class ReviewForm(forms.ModelForm):
             #self.fields['score2'].label = "程式難度"
             #self.fields['score3'].label = "創意表現"
             #self.fields['comment'].label = "評語"			 
+            
+class ImageUploadForm(forms.Form):
+    """Image upload form."""
+    image = forms.ImageField()

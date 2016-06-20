@@ -18,7 +18,7 @@
         <tr align=left>
         <td align=right>{{lesson.0}}</td>
             <td nowrap>{{lesson.2}}</td>
-            <td>{{lesson.5}}</td>
+            <td>{% if lesson.5 == "null" %}<a href="/student/group/work/{{forloop.counter}}/{{classroom_id}}">尚未評分!</a>{% else %}{{lesson.5}}{% endif %}</td>
             {% if lesson.3 == -1 %}
                 <td>已繳交</td>
             {% else %}

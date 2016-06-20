@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from student.models import Enroll
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from show.forms import GroupForm, ShowForm, ReviewForm
+from show.forms import GroupForm, ShowForm, ReviewForm, ImageUploadForm
 from teacher.models import Classroom
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.http import HttpResponseRedirect
@@ -18,7 +18,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from collections import OrderedDict
 from django.http import JsonResponse
 import math
-
+import cStringIO as StringIO
+from PIL import Image,ImageDraw,ImageFont
+from binascii import a2b_base64
+import os
 
 def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
@@ -370,3 +373,63 @@ def make(request):
         return JsonResponse({'status':'ok'}, safe=False)        
     else:
         return JsonResponse({'status':'ko'}, safe=False)       
+        
+# 上傳 Dr Scratch 分析圖
+def upload_pic(request, show_id):
+    m = []
+    if request.method == 'POST':
+        '''
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                m = ShowGroup.objects.get(id=show_id)
+                m.picture = form.cleaned_data['image']
+				
+                image_field = form.cleaned_data.get('image')
+                image_file = StringIO.StringIO(image_field.read())
+                image = Image.open(image_file)
+                image = image.resize((800, 600), Image.ANTIALIAS)
+
+                image_file = StringIO.StringIO()
+                image.save(image_file, 'JPEG', quality=90)
+
+                image_field.file = image_file
+                m.save()
+            except ObjectDoesNotExist:
+                pass
+            classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
+            # 記錄系統事件
+            log = Log(user_id=request.user.id, event='上傳Dr Scratch分析圖成功')
+            log.save()             
+            return redirect('/show/detail/'+show_id)
+            '''
+        try:
+            dataURI = request.POST.get("screenshot")
+            head, data = dataURI.split(',', 1)
+            mime, b64 = head.split(';', 1)
+            mtype, fext = mime.split('/', 1)
+            binary_data = a2b_base64(data)
+            directory = 'static/show/' + show_id
+            image_file = "static/show/{id}/{filename}.{ext}".format(id=show_id, filename='Dr-Scratch', ext=fext)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            with open(image_file, 'wb') as fd:
+                fd.write(binary_data)
+                fd.close()
+            m = ShowGroup.objects.get(id=show_id)
+            m.picture = image_file
+            m.save()
+        except ObjectDoesNotExist:
+            pass
+        classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
+        # 記錄系統事件
+        log = Log(user_id=request.user.id, event='上傳Dr Scratch分析圖成功')
+        log.save()             
+        return redirect('/show/detail/'+show_id+'/#drscratch')
+    else :
+        try:
+            m = ShowGroup.objects.get(id=show_id)   
+        except ObjectDoesNotExist:
+            pass
+        form = ImageUploadForm()
+    return render_to_response('show/drscratch.html', {'form':form, 'show': m}, context_instance=RequestContext(request))

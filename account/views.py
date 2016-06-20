@@ -18,7 +18,8 @@ from mimetypes import MimeTypes
 
 # 網站首頁
 def homepage(request):
-    return render_to_response('homepage.html', context_instance=RequestContext(request))
+    users = User.objects.all()
+    return render_to_response('homepage.html', {'user_count':len(users)}, context_instance=RequestContext(request))
 
 # 使用者登入功能
 def user_login(request):

@@ -315,7 +315,7 @@ def work(request, classroom_id):
             score_name = User.objects.get(id=work.scorer).first_name
             lesson_list[work.index-1].append(score_name)
         else :
-            lesson_list[work.index-1].append("尚未評分!")
+            lesson_list[work.index-1].append("null")
     c = 0
     for lesson in lesson_list:
         assistant = Assistant.objects.filter(student_id=request.user.id, lesson=c+1, classroom_id=classroom_id)
@@ -415,7 +415,7 @@ def memo_show(request, user_id, unit,classroom_id, score):
             score_name = User.objects.get(id=work.scorer).first_name
             lesson_list[work.index-1].append(score_name)
         else :
-            lesson_list[work.index-1].append("尚未評分!")
+            lesson_list[work.index-1].append("null")
         lesson_list[work.index-1].append(work.memo)
     c = 0
     for lesson in lesson_list:
@@ -430,7 +430,7 @@ def memo_show(request, user_id, unit,classroom_id, score):
     # 記錄系統事件
     log = Log(user_id=request.user.id, event=u'查看同學心得<'+user_name+'><'+unit+'>')
     log.save()        
-    return render_to_response('student/memo_show.html', {'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit, 'score':score}, context_instance=RequestContext(request))
+    return render_to_response('student/memo_show.html', {'classroom_id': classroom_id, 'works':works, 'lesson_list':lesson_list, 'user_name': user_name, 'unit':unit, 'score':score}, context_instance=RequestContext(request))
 
 # 查詢作業進度
 def progress(request, classroom_id, unit):

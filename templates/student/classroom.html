@@ -27,6 +27,9 @@
 			<a href="/show/rank/2/{{enroll.classroom_id}}/">程式王</a>｜
 			<a href="/show/rank/3/{{enroll.classroom_id}}/">創意王</a>｜			
 			<a target=_blank href="http://drscratch.programamos.es/">Dr Scratch</a>
+			{% if enroll.group_show > 0 %}
+			<a href="/show/drscratch/{{enroll.group_show}}">上傳分析圖</a>
+			{% endif %}
 			</td>
 		</tr>	
         <tr>

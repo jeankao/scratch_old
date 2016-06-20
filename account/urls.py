@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from django.conf.urls import url
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # post views
@@ -8,7 +9,7 @@ urlpatterns = [
     #登入
     url(r'^login/$', views.user_login, name='login'),
     #登出
-    url(r'^logout/$', 'django.contrib.auth.views.logout'),
+    url(r'^logout/$',auth_views.logout),
     url(r'^suss_logout/(?P<user_id>\d+)/$', views.suss_logout),    
     #列出所有帳號
     url(r'^userlist/$', views.UserListView.as_view()),      
@@ -17,8 +18,8 @@ urlpatterns = [
     #個人檔案
     url(r'^profile/(?P<user_id>\d+)/$', views.profile),    
     #修改密碼
-    url(r'^password-change/$', 'django.contrib.auth.views.password_change', name='password_change'),
-    url(r'^password-change/done/$', 'django.contrib.auth.views.password_change_done', name='password_change_done'),    
+    url(r'^password-change/$', auth_views.password_change, name='password_change'),
+    url(r'^password-change/done/$', auth_views.password_change_done, name='password_change_done'),    
     url(r'^password/(?P<user_id>\d+)/$', views.password),
     #修改真實姓名
     url(r'^realname/(?P<user_id>\d+)/$', views.adminrealname),    

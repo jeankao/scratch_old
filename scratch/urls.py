@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from account import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -23,7 +24,7 @@ urlpatterns = [
     url(r'^student/', include('student.urls')),        
     url(r'^certificate/', include('certificate.urls')),     
     url(r'^show/', include('show.urls')),     
-    url(r'^download/(?P<filename>[^/]+)/$', 'account.views.download'), 
-    url(r'^$', 'account.views.homepage', name='homepage'),
+    url(r'^download/(?P<filename>[^/]+)/$', views.download), 
+    url(r'^$', views.homepage, name='homepage'),
     
 ]

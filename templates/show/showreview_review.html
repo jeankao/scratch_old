@@ -51,6 +51,11 @@
 {% for review in reviews %}
 {{review.student.first_name}}:{{review.comment}}<BR>
 {% endfor %}
+{% if show.picture %}
+<A name=drscratch>
+<h1>Dr. Scratch分析圖</h1>
+<img src="/{{show.picture}}">
+{% endif %}
 {% endblock %}
 {% block userscript %}
 var content = document.getElementById('id_comment').value;    

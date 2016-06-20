@@ -23,16 +23,16 @@
     <td>{{enroll.student.first_name}}</td>	
     {% endif %}
 	{% if unit == "1" %}
-    <td>{% if enroll.certificate1 %}{{enroll.certificate1_date|timezone:'Asia/Taipei'}}{% endif %}</td>	
+    <td>{% if enroll.certificate1 %}{{enroll.certificate1_date}}{% endif %}</td>	
     <td>{% if enroll.certificate1 %}<a href="/certificate/show/1/{{enroll.id}}"><img src="/static/images/certificate.png">{% endif %}</a></td>
     {% elif unit == "2" %}
-    <td>{% if enroll.certificate2 %}{{enroll.certificate2_date|timezone:'Asia/Taipei'}}{% endif %}</td>	
+    <td>{% if enroll.certificate2 %}{{enroll.certificate2_date}}{% endif %}</td>	
     <td>{% if enroll.certificate2 %}<a href="/certificate/show/2/{{enroll.id}}"><img src="/static/images/certificate.png">{% endif %}</a></td>
     {% elif unit == "3" %}
-    <td>{% if enroll.certificate3 %}{{enroll.certificate3_date|timezone:'Asia/Taipei'}}{% endif %}</td>	
+    <td>{% if enroll.certificate3 %}{{enroll.certificate3_date}}{% endif %}</td>	
     <td>{% if enroll.certificate3 %}<a href="/certificate/show/3/{{enroll.id}}"><img src="/static/images/certificate.png">{% endif %}</a></td>
     {% elif unit == "4" %}
-    <td>{% if enroll.certificate4 %}{{enroll.certificate4_date|timezone:'Asia/Taipei'}}{% endif %}</td>	
+    <td>{% if enroll.certificate4 %}{{enroll.certificate4_date}}{% endif %}</td>	
     <td>{% if enroll.certificate4 %}<a href="/certificate/show/4/{{enroll.id}}"><img src="/static/images/certificate.png">{% endif %}</a></td>
     {% endif %}		
 	</Tr>

@@ -20,7 +20,7 @@
         <td>{{lesson.1}}</td>
         <td align=right>{{lesson.0}}</td>
             <td><a href="/student/submitall/{{ forloop.counter }}">{{lesson.2}}</a></td>
-            <td>{{lesson.5}}</td>
+            <td>{% if lesson.5 == "null" %}<a href="/student/group/work/{{forloop.counter}}/{{classroom_id}}">尚未評分!</a>{% else %}{{lesson.5}}{% endif %}</td>
             {% if lesson.3 == -1 %}
                 <td>已繳交</td>
             {% else %}

@@ -3,6 +3,10 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+def upload_path_handler(instance, filename):
+    return "static/show/{id}/{filename}".format(id=instance.id, filename=filename)
+
+
 # 分組作品
 class ShowGroup(models.Model):
     name = models.CharField(max_length=30)
@@ -12,6 +16,7 @@ class ShowGroup(models.Model):
     number = models.CharField(max_length=30)    
     body = models.TextField()
     publish = models.DateTimeField(default=timezone.now)
+    picture = models.ImageField(upload_to = upload_path_handler, default = '/static/show/null.jpg')
     done = models.BooleanField(default=False)
     open =  models.BooleanField(default=False)
 
