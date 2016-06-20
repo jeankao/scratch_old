@@ -174,7 +174,11 @@ class ReviewUpdateView(UpdateView):
 
     def get(self, request, **kwargs):
         show = ShowGroup.objects.get(id=self.kwargs['show_id'])
-        self.object = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        try:
+            self.object = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        except ObjectDoesNotExist:
+            self.object = ShowReview(student_id=self.request.user.id)
+            self.object.save()        
         reviews = ShowReview.objects.filter(show_id=self.kwargs['show_id'], done=True)
         score1 = reviews.aggregate(Sum('score1')).values()[0]
         score2 = reviews.aggregate(Sum('score2')).values()[0]
@@ -195,7 +199,11 @@ class ReviewUpdateView(UpdateView):
         return self.render_to_response(context)
 
     def get_object(self, queryset=None):
-        obj = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        try :
+            obj = ShowReview.objects.get(show_id=self.kwargs['show_id'], student_id=self.request.user.id)
+        except ObjectDoesNotExist:
+            obj = ShowReview(student_id=self.request.user.id)
+            obj.save()
         return obj
 	
     def form_valid(self, form):

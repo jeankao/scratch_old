@@ -185,7 +185,7 @@ def seat_edit(request, enroll_id, classroom_id):
         if form.is_valid():
             enroll.seat =form.cleaned_data['seat']
             enroll.save()
-            classroon_name = Classroom.objects.get(id=classroom_id).name
+            classroom_name = Classroom.objects.get(id=classroom_id).name
             # 記錄系統事件 
             log = Log(user_id=request.user.id, event=u'修改座號<'+classroom_name+'>')
             log.save() 
