@@ -25,21 +25,21 @@
   <BR>
   {% if debug.0.reward > 0 %}
   評價時間：{{debug.0.reward_date}}
-	{% if request.user.id == debug.0.bug_author_id and request.user.id != debug.0.author_id %}
+  {% endif %}
+  評價結果：
+  {% if debug.0.reward == 3 %}完全解決
+  {% elif debug.0.reward == 2 %}大概解決
+  {% elif debug.0.reward == 1 %}部份解決
+  {% elif debug.0.reward == 1 %}沒有解決 
+  {% else %}尚未評價
+  {% endif %}
+  {% if request.user.id == debug.0.bug_author_id and request.user.id != debug.0.author_id %}
   <BR>
   <form action="/student/bug/value/{{bug.id}}/" method="Post">
     {{ debug.1.as_p }}
     {% csrf_token %}
     <p><input type="submit" value="評價"></p>
   </form>  
-  {% else %}
-  評價結果：
-  {% if debug.0.reward == 3 %}完全解決
-  {% elif debug.0.reward == 2 %}大概解決
-  {% elif debug.0.reward == 1 %}部份解決
-  {% else %}沒有解決  
-  {% endif %}
-  {% endif %}
   {% endif %}
   </div>
 {% empty %}
