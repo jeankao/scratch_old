@@ -39,12 +39,15 @@
 				{% endfor %}
 				</td>
                 <td>
+                {% if student_group == group.0.id %}
+		    	<a href="/show/group/submit/{{student_group}}/{{classroom_id}}">繳交</a>
+                {% endif %}                
 				{% if group_show_open %}
                 {% if student_group == group.0.id %}
                 已加入
                 {% else %}
                 <a href="/show/group/enroll/{{classroom_id}}/{{group.0.id}}">加入此組</a>
-                {% endif %}             
+                {% endif %}   
 				{% endif %}
                 </td>
                 <td>

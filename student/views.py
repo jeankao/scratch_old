@@ -7,14 +7,14 @@ from django.contrib.auth.models import User
 from django.template import RequestContext
 #from django.contrib.auth.decorators import login_required
 #from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import ListView
+from django.views.generic import ListView, CreateView
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 from teacher.models import Classroom
-from student.models import Enroll, EnrollGroup, Work, Assistant, Exam
-from account.models import Log
+from student.models import Enroll, EnrollGroup, Work, Assistant, Exam, Bug, Debug
+from account.models import Log, Message, MessagePoll
 from certificate.models import Certificate
-from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm
+from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm, BugForm, DebugForm, DebugValueForm
 from django.utils import timezone
 from student.lesson import *
 from account.avatar import *
@@ -573,3 +573,145 @@ def exam_check(request):
         return JsonResponse({'status':'ok','answer':answer}, safe=False)
     else:
         return JsonResponse({'status':'ko'}, safe=False)
+        
+def debug_value(request, bug_id):
+        import sys
+        reload(sys)
+        sys.setdefaultencoding("utf-8")
+        # A comment was posted
+        debug = Debug.objects.filter(id=3)
+        debug_value_form = DebugValueForm(data=request.POST)		
+        if debug_value_form.is_valid():
+            try:
+                debug_id = int(debug_value_form.cleaned_data['id']) 
+                debug = Debug.objects.get(id=debug_id)
+                url = "/student/bug/"+str(bug_id)
+                if debug_value_form.cleaned_data['reward'] == "0":
+                    reward = "沒有解決"
+                    msg =u'0分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                elif debug_value_form.cleaned_data['reward'] == "1":
+                    reward = "部份解決"
+                    msg =u'1分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                elif debug_value_form.cleaned_data['reward'] == "2":
+                    reward = "大概解決"
+                    msg =u'2分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                elif debug_value_form.cleaned_data['reward'] == "3":
+                    reward = "完全解決"						
+                    msg =u'3分--'+ request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+
+
+				# credit
+                if debug.reward < 0 :             
+					# credit
+                    update_avatar(debug.author_id, 3, int(debug_value_form.cleaned_data['reward']))
+                    # History
+                    history = PointHistory(user_id=debug.author_id, kind=3, message=msg, url=url)
+                    history.save()	
+
+                # create Message
+                message = Message.create(title=msg, url=url, time=timezone.localtime(timezone.now()))
+                message.save()
+                messagepoll = MessagePoll.create(reader_id=debug.author_id, message_id = message.id)
+                messagepoll.save()
+                debug.reward=debug_value_form.cleaned_data['reward']
+                debug.save()
+                # 記錄系統事件
+                log = Log(user_id=request.user.id, event=u'評價除錯<'+ debug_value_form.cleaned_data['reward']+u'分><'+debug.author.first_name+'>')
+                log.save()                 
+            except ObjectDoesNotExist:
+			    pass
+			    
+        return redirect("/student/bug/"+str(bug_id))
+
+			
+def bug_detail(request, bug_id):
+    bug = Bug.objects.get(id=bug_id)
+    # List of active comments for this post
+    debugs = Debug.objects.filter(bug_id=bug.id)
+    datas = []
+    for debug in debugs:
+	    datas.append([debug, DebugValueForm(instance=debug)])	
+    if request.method == 'POST':
+        # A comment was posted
+        debug_form = DebugForm(data=request.POST)
+        if debug_form.is_valid():
+            # Create Comment object but don't save to database yet
+            new_debug = debug_form.save(commit=False)
+            # Assign the current bug to the comment
+            new_debug.bug_id = bug.id
+            new_debug.author_id = request.user.id
+            # Save the comment to the database
+            new_debug.save()
+            
+            # create Message
+            title = request.user.first_name + u"--幫您除錯了<"+ bug.title + ">"
+            url = request.get_full_path()
+            message = Message.create(title=title, url=url, time=timezone.localtime(timezone.now()))
+            message.save()
+        
+            messagepoll = MessagePoll.create(reader_id=bug.author_id, message_id = message.id)
+            messagepoll.save()
+            
+            # 記錄系統事件
+            bug = Bug.objects.get(id=bug_id)
+            log = Log(user_id=request.user.id, event=u'幫忙除錯<'+ bug.title +'>')
+            log.save()               
+
+            return redirect("/student/bug/"+bug_id)
+    else:
+        debug_form = DebugForm()      	
+    return render_to_response('student/bug_detail.html',{'bug': bug,'datas': datas, 'debug_form': debug_form}, context_instance=RequestContext(request))
+                          
+class BugListClassView(ListView):
+    context_object_name = 'bugs'
+    paginate_by = 10
+    template_name = 'student/bug_list.html'
+    def get_queryset(self):
+        class_bugs = []
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for enroll in enrolls:
+            bugs = Bug.objects.filter(author_id=enroll.student_id, classroom_id=self.kwargs['classroom_id'])
+            for bug in bugs:
+                debugs = Debug.objects.filter(bug_id=bug.id)
+                class_bugs.append([bug, debugs])
+        def getKey(custom):
+            return custom[0].publish	
+        sorted_bug = sorted(class_bugs, key=getKey, reverse=True)
+        # 記錄系統事件
+        classroom_name = Classroom.objects.get(id=self.kwargs['classroom_id']).name
+        log = Log(user_id=self.request.user.id, event=u'查看所有除錯<'+ classroom_name +'>')
+        log.save()         
+        return sorted_bug
+            
+    
+class BugCreateView(CreateView):
+    model = Bug
+    form_class = BugForm
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.author_id = self.request.user.id
+        self.object.classroom_id = self.kwargs['classroom_id']
+        self.object.save()
+
+        # create Message
+        title = self.request.user.first_name + u"--提出一個Bug<" + form.cleaned_data['title'] + ">"
+        url = "/student/bug/" + str(self.object.id)
+        message = Message.create(title=title, url=url, time=timezone.now())
+        message.save()
+        
+        enrolls = Enroll.objects.filter(student_id = self.request.user.id)
+        for enroll in enrolls:
+        # message for teacher
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=enroll.classroom.teacher_id)
+            messagepoll.save()
+        # message for classsmates
+            classmates = Enroll.objects.filter(classroom_id = enroll.classroom_id)
+            for classmate in classmates:
+				if not classmate.student_id == self.request.user.id:
+					messagepoll = MessagePoll.create(message_id = message.id,reader_id=classmate.student_id)
+					messagepoll.save()                
+        # 記錄系統事件
+        classroom_name = Classroom.objects.get(id=self.kwargs['classroom_id']).name        
+        log = Log(user_id=self.request.user.id, event=u'張貼Bug<'+ classroom_name +'>')
+        log.save() 					
+        return redirect(url)
