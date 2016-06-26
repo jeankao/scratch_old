@@ -6,7 +6,7 @@ Author URI: http://www.os-templates.com/
 Licence: Free to use under our free template licence terms
 Licence URI: http://www.os-templates.com/template-terms
 File: Layout CSS
-*/
+    */
 
 @import url("fontawesome-4.2.0.min.css");
 @import url("framework.css");
@@ -21,6 +21,7 @@ File: Layout CSS
 .row5{border-top:1px solid;}
 .row6, .row6 a{}
 
+.row1, .row2 {display: none;}
 
 /* Top Bar
 --------------------------------------------------------------------------------------------------------------- */
@@ -30,6 +31,7 @@ File: Layout CSS
 #topbar .nospace.linklist li{display:inline; margin-right:5px; padding-right:8px; border-right:1px solid;}
 #topbar .nospace.linklist li:last-child{margin:0; padding:0; border:none;}
 
+#top > .wrapper.row0 {position:fixed;}
 
 /* Header
 --------------------------------------------------------------------------------------------------------------- */
