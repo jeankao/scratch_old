@@ -67,7 +67,7 @@ def suss_logout(request, user_id):
 @login_required
 def dashboard(request):
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event='抵達大廳')
+    log = Log(user_id=request.user.id, event='查看訊息')
     log.save()    
     messages = []
     messagepolls = MessagePoll.objects.filter(reader_id=request.user.id)
@@ -268,10 +268,23 @@ class EventListView(ListView):
         log = Log(user_id=self.request.user.id, event='查看事件')
         log.save()       
         if self.kwargs['user_id'] == "0":
-            queryset = Log.objects.order_by('-id')
+            if self.request.GET.get('q') != None:
+                queryset = Log.objects.filter(event__icontains=self.request.GET.get('q')).order_by('-id')
+            else :
+                queryset = Log.objects.order_by('-id')
         else :
-            queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
+            if self.request.GET.get('q') != None:
+                queryset = Log.objects.filter(user_id=self.kwargs['user_id'],event__icontains=self.request.GET.get('q')).order_by('-id')
+            else : 
+                queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
         return queryset
+        
+
+    def get_context_data(self, **kwargs):
+        context = super(EventListView, self).get_context_data(**kwargs)
+        q = self.request.GET.get('q')
+        context.update({'q': q})
+        return context	
 	
 # 下載檔案
 def download(request, filename):
@@ -306,4 +319,3 @@ def download(request, filename):
 def avatar(request):
     profile = Profile.objects.get(user = request.user)
     return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
-    
