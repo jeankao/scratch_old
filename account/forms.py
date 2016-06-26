@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from django import forms
 from django.contrib.auth.models import User
+from account.models import Log
 
 # 使用者登入表單
 class LoginForm(forms.Form):
@@ -79,3 +80,14 @@ class RealnameForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RealnameForm, self).__init__(*args, **kwargs)
         self.fields['first_name'].label = "真實姓名"
+
+# 查詢事件
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Log
+        fields = ['event']    
+        
+            
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__(*args, **kwargs)
+        self.fields['event'].label = "事件名稱"        

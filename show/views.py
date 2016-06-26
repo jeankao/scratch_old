@@ -79,7 +79,7 @@ def group_add(request, classroom_id):
 # 加入組別
 def group_enroll(request, classroom_id,  group_id):
         classroom_name = Classroom.objects.get(id=classroom_id).name    
-        group_name = ShowGroup(id=group_id).name
+        group_name = ShowGroup.objects.get(id=group_id).name
         enroll = Enroll.objects.filter(student_id=request.user.id, classroom_id=classroom_id)
         enroll.update(group_show=group_id)
         # 記錄系統事件

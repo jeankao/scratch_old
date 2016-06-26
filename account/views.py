@@ -6,7 +6,8 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm
 from django.contrib.auth.models import User
-from account.models import Profile, PointHistory, Log
+from account.models import Profile, PointHistory, Log, Message, MessagePoll
+from student.models import Enroll, Work, Assistant
 from django.core.exceptions import ObjectDoesNotExist
 from account.templatetags import tag 
 from django.views.generic import ListView
@@ -15,6 +16,7 @@ from django.http import JsonResponse
 import sys, os
 from django.http import HttpResponse
 from mimetypes import MimeTypes
+from student.lesson import *
 
 # 網站首頁
 def homepage(request):
@@ -68,8 +70,9 @@ def dashboard(request):
     log = Log(user_id=request.user.id, event='抵達大廳')
     log.save()    
     messages = []
-    #for messagepoll in messagepolls:
-    #    messages.append(messagepoll.message)
+    messagepolls = MessagePoll.objects.filter(reader_id=request.user.id)
+    for messagepoll in messagepolls:
+        messages.append(messagepoll.message)
     return render(request,
                   'account/dashboard.html',
                   {'section': 'dashboard', 
@@ -104,18 +107,31 @@ def register(request):
 # 顯示個人檔案
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
+    enrolls = Enroll.objects.filter(student_id=user_id)
     try: 
         profile = Profile.objects.get(user=user)
     except ObjectDoesNotExist:
         profile = Profile(user=user)
         profile.save()
-    
+
+    del lesson_list[:]
+    reset()
+    works = Work.objects.filter(user_id=user_id)
+    for work in works:
+        lesson_list[work.index-1].append(work.score)
+        lesson_list[work.index-1].append(work.publication_date)
+        if work.score > 0 :
+            score_name = User.objects.get(id=work.scorer).first_name
+            lesson_list[work.index-1].append(score_name)
+        else :
+            lesson_list[work.index-1].append("null")
+
     # 計算積分    
     credit = profile.work + profile.assistant + profile.debug + profile.creative
     # 記錄系統事件
     log = Log(user_id=request.user.id, event='查看個人檔案')
     log.save()        
-    return render_to_response('account/profile.html',{'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
+    return render_to_response('account/profile.html',{'works':works, 'lesson_list':lesson_list, 'enrolls':enrolls, 'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
 
 # 修改密碼
 def password(request, user_id):

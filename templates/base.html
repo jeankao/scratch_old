@@ -27,20 +27,19 @@ Licence URI: http://www.os-templates.com/template-terms
       <ul class="nospace linklist"> 
 		<li><a href="{% url 'homepage' %}">首頁</a></li>
 		<li><a href="https://scratch.mit.edu/" target="_blank">官網</a></li>		
-		<li><a href="/student/lessons/1">Scratch12堂課</a></li>		
-		<li><a href="/student/lessons/2">實戰入門</a></li>		
-		<li><a href="/student/lessons/3">實戰進擊</a></li>		
-		<li><a href="/student/lessons/4">實戰髙手</a></li>	
+		<li><a href="/student/lessons">課程</a></li>		
 		<li><a href="/show/gallery">藝廊</a></li>		
 		{% if not user.is_authenticated %}
 		<li><a href="http://www.books.com.tw/products/0010703424" target="_blank">參考書</a></li>
 		{% endif %}
 		{% if user.is_authenticated %}
-		<li><a href="/account">大廳</a></li>	
+		<li><a href="/student/classroom">班級</a></li>			
+		<li><a href="/account">訊息</a></li>
+		<li><a href="/account/profile/{{user.id}}">個人檔案</a></li>		
 			{% if user.id == 1 %}
 		<li><a href="/account/userlist">帳號管理</a></li>
 			{% endif %}				        
-		        <li><a href="/student/classroom">班級</a></li>	
+
             {% if request.user|has_group:"teacher" %} 	
 		<li><a href="/teacher/classroom">教師管理</a></li>
 		<li><a href="/account/event/0">事件</a></a></li>		
@@ -69,7 +68,7 @@ Licence URI: http://www.os-templates.com/template-terms
   <header id="header" class="clear"> 
     <!-- ################################################################################################ -->
     <div id="logo" class="fl_left">
-      <h1><a href="{% url 'homepage' %}"><img src="/static/images/banner.png"></a></h1>
+
     </div>
     <!-- ################################################################################################ -->
     <nav id="mainav" class="fl_right">

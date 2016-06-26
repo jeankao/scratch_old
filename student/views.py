@@ -196,21 +196,14 @@ def seat_edit(request, enroll_id, classroom_id):
     return render_to_response('form.html',{'form': form}, context_instance=RequestContext(request))  
 
 # 四種課程    
-def lessons(request, lesson):
+def lessons(request):
         enrolls = Enroll.objects.filter(student_id=request.user.id)
         if request.user.is_authenticated():
             user_id = request.user.id
         else :
             user_id = 0
         # 記錄系統事件 
-        if lesson == "1":
-            log = Log(user_id=user_id, event='查看課程頁面<12堂課>')
-        elif lesson == "2":
-            log = Log(user_id=user_id, event='查看課程頁面<實戰入門>')          
-        elif lesson == "3":
-            log = Log(user_id=user_id, event='查看課程頁面<實戰進擊>') 
-        elif lesson == "4":
-            log = Log(user_id=user_id, event='查看課程頁面<實戰高手>')             
+        log = Log(user_id=user_id, event='查看課程頁面')             
         log.save()         
         return render_to_response('student/lessons.html', {'lesson':lesson, 'enrolls':enrolls}, context_instance=RequestContext(request))
 

@@ -28,7 +28,7 @@ function MM_swapImage() { //v3.0
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
 {% block content %}
-{% if lesson == "1" %}
+
 		<table>
 		<tr>
 		<td>
@@ -72,13 +72,10 @@ function MM_swapImage() { //v3.0
 			<a onmouseover="MM_swapImage('menu12','','/static/images/lesson112.png',1);" onmouseout=MM_swapImgRestore() href="/student/lesson/11"><img name="menu12" src="/static/images/lesson11.png"></a>
 		</td>		
 		</tr>
-		{% for enroll in enrolls %}
-		{% if enroll.certificate1 %}
-		<tr align=center><td colspan=4><img src="/static/certificate/1/{{enroll.id}}.jpg"></td></tr>
-		{% endif %}
-		{% endfor %}
 	  	</table>
-{% elif lesson == "2" %}
+<br>
+<hr>
+<BR>
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -118,13 +115,11 @@ function MM_swapImage() { //v3.0
 			<td>
 			</td>			
 		</tr>
-		{% for enroll in enrolls %}
-		{% if enroll.certificate2 %}
-		<tr align=center><td colspan=4><img src="/static/certificate/2/{{enroll.id}}.jpg"></td></tr>
-		{% endif %}
-		{% endfor %}		
+		
 		</table>
-{% elif lesson == "3" %}
+<br>
+<hr>
+<BR>
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -162,13 +157,11 @@ function MM_swapImage() { //v3.0
 			</td>
 			</td>			
 		</tr>
-		{% for enroll in enrolls %}
-		{% if enroll.certificate3 %}
-		<tr align=center><td colspan=4><img src="/static/certificate/3/{{enroll.id}}.jpg"></td></tr>
-		{% endif %}
-		{% endfor %}		
+		
 		</table>
-{% elif lesson == "4" %}
+<br>
+<hr>
+<BR>
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -205,11 +198,7 @@ function MM_swapImage() { //v3.0
 			<a onmouseover="MM_swapImage('menuC08','','/static/images/lesson_C082.png',1);" onmouseout=MM_swapImgRestore() href="/student/lesson/C08"><img name="menuC08" src="/static/images/lesson_C08.png"></a>
 			</td>			
 		</tr>
-		{% for enroll in enrolls %}
-		{% if enroll.certificate4 %}
-		<tr align=center><td colspan=4><img src="/static/certificate/4/{{enroll.id}}.jpg"></td></tr>
-		{% endif %}
-		{% endfor %}		
+		
 		</table>
-{% endif %}
+
 {% endblock %}
