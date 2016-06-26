@@ -210,7 +210,7 @@ def make_image(unit, enroll_id, teacher_id):
     writeFile(temp_handle.read(), fileName, context)
 
     #update and message
-    title = "<img src='/static/images/certificate.png'>"
+    title = teacher_name + u"核發了一張證書給你<img src='/static/images/certificate.png'>"
     #title = smart_text(teacher_name+"--核發了一張證書給你", encoding='utf-8', strings_only=False, errors='strict')
     url = "/certificate/show/" + unit + "/" + enroll_id
     message = Message.create(title=title, url=url, time=timezone.now())
