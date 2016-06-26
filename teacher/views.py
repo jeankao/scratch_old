@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 #from django.contrib.auth.models import Group
 from teacher.models import Classroom
 from student.models import Enroll
-from account.models import Log
+from account.models import Log, Message, MessagePoll
 from student.models import Enroll, Work, EnrollGroup, Assistant, Exam
 from .forms import ClassroomForm, ScoreForm,  CheckForm1, CheckForm2, CheckForm3, CheckForm4
 #from django.views.generic.edit import ModelFormMixin
@@ -20,6 +20,7 @@ from .forms import ClassroomForm, ScoreForm,  CheckForm1, CheckForm2, CheckForm3
 from student.lesson import *
 from account.avatar import *
 from account.models import Profile, PointHistory
+from django.utils import timezone
 #from django.contrib.auth.decorators import login_required, user_passes_test
 
 # 判斷是否為授課教師
@@ -193,7 +194,22 @@ def scoring(request, classroom_id, user_id, index):
 					    assistant = Assistant.objects.get(student_id=user_id, classroom_id=classroom_id, lesson=index)
                     except ObjectDoesNotExist:
                         assistant = Assistant(student_id=user_id, classroom_id=classroom_id, lesson=index)
-                        assistant.save()			
+                        assistant.save()	
+                        
+                    # create Message
+                    title = assistant.student.first_name.encode("utf-8") + u"擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + ">"
+                    url = "/student/group/work/" + classroom_id + "/" + str(index)
+                    message = Message.create(title=title, url=url, time=timezone.now())
+                    message.save()                        
+                    
+                    group = Enroll.objects.get(classroom_id=classroom_id, student_id=assistant.student_id).group
+                    if group > 0 :
+                        enrolls = Enroll.objects.filter(group = group)
+                        for enroll in enrolls:
+                            # message for group member
+                            messagepoll = MessagePoll.create(message_id = message.id,reader_id=enroll.student_id)
+                            messagepoll.save()
+                    
                 return redirect('/teacher/score/'+classroom_id+'/'+index)
             else: 
                 return redirect('/teacher/score_peer/'+index+'/'+classroom_id+'/'+str(enroll.group))

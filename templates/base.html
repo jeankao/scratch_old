@@ -50,7 +50,7 @@ Licence URI: http://www.os-templates.com/template-terms
     <div class="fl_right">
       <ul class="nospace linklist">
 		{% if user.is_authenticated %}
-		<li><a href="/account/profile/{{user.id}}"><img src="/static/avatar/s{{ user.profile.avatar }}.png"><strong>{{ user.first_name }}</strong></a></li>
+		<li><a href="/account/avatar/"><img src="/static/avatar/s{{ user.profile.avatar }}.png"><strong>{{ user.first_name }}</strong></a></li>
 		<li><a href="/account/logout" class='button'>登出</a></li>
 		{% else %}
 		<li>歡迎</li>

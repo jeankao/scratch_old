@@ -3,8 +3,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-  <h1>Dashboard</h1>
-  <p>Welcome to your dashboard.</p>
+  <h1>訊息</h1>
   <Table>
 {% for message in messages reversed %}
     <Tr><td><img src="/static/images/scratch1.gif"> {{ message.time}} <a href="{{ message.url }}">{{ message.title|safe }}</a></td></Tr>

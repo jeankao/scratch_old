@@ -29,5 +29,7 @@ urlpatterns = [
     #設定教師
     url(r'^teacher/make/$', views.make, name='make'),    
     #系統事件記錄
-    url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),            
+    url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),
+    # 列所出有圖像
+    url(r'^avatar/$', views.avatar),  
 ]

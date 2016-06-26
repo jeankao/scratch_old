@@ -303,3 +303,7 @@ def download(request, filename):
     log.save()     
     return response
 
+def avatar(request):
+    profile = Profile.objects.get(user = request.user)
+    return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
+    

@@ -78,6 +78,10 @@ class Assistant(models.Model):
     student_id = models.IntegerField(default=0)
     classroom_id = models.IntegerField(default=0)
     lesson = models.IntegerField(default=0)
+    
+    @property        
+    def student(self):
+        return User.objects.get(id=self.student_id)         
 	
 # 測驗卷
 class Exam(models.Model):
