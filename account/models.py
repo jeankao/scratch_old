@@ -46,10 +46,14 @@ class Log(models.Model):
 	# 事件內容
 	event = models.CharField(max_length=100)
 	# 發生時間 
-	publish = models.DateTimeField(default=timezone.now)	
+	publish = models.DateTimeField(default=timezone.now)
+
+        @property
+        def user(self):
+            return User.objects.get(id=self.user_id)
 	
 	def __unicode__(self):
-		return str(self.user_id)+'--'.self.event	
+		return str(self.user_id)+'--'.self.event
 
 # 大廳訊息	
 class Message(models.Model):

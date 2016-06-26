@@ -31,6 +31,7 @@ urlpatterns = [
     #系統事件記錄
     url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),
     url(r'^event/clear/$', views.clear),
+    url(r'^event/excel/$', views.event_excel),
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
 ]

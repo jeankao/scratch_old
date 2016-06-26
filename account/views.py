@@ -17,6 +17,8 @@ import sys, os
 from django.http import HttpResponse
 from mimetypes import MimeTypes
 from student.lesson import *
+import StringIO
+import xlsxwriter
 
 # 網站首頁
 def homepage(request):
@@ -324,4 +326,28 @@ def clear(request):
     events = Log.objects.all()
     for event in events:
         event.delete()
-    return redirect("/account/event")
+    return redirect("/account/event/0")
+    
+def event_excel(request):
+    output = StringIO.StringIO()
+    workbook = xlsxwriter.Workbook(output)    
+    #workbook = xlsxwriter.Workbook('hello.xlsx')
+    worksheet = workbook.add_worksheet()
+    date_format = workbook.add_format({'num_format': 'dd/mm/yy hh:mm:ss'})
+    events = Log.objects.all().order_by('-id')
+    index = 1
+    for event in events:
+        worksheet.write('A'+str(index), event.user.first_name)
+        worksheet.write('B'+str(index), event.event)
+        worksheet.write('C'+str(index), str(event.publish))
+        index = index + 1
+
+    workbook.close()
+    # xlsx_data contains the Excel file
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=Report.xlsx'
+    xlsx_data = output.getvalue()
+    response.write(xlsx_data)
+    return response
+
+    
