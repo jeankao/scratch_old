@@ -319,3 +319,9 @@ def download(request, filename):
 def avatar(request):
     profile = Profile.objects.get(user = request.user)
     return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
+    
+def clear(request):
+    events = Log.objects.all()
+    for event in events:
+        event.delete()
+    return redirect("/account/event")
