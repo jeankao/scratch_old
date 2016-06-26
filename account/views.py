@@ -19,6 +19,7 @@ from mimetypes import MimeTypes
 from student.lesson import *
 import StringIO
 import xlsxwriter
+import datetime
 
 # 網站首頁
 def homepage(request):
@@ -262,7 +263,7 @@ def make(request):
 # 記錄系統事件
 class EventListView(ListView):
     context_object_name = 'events'
-    paginate_by = 20
+    paginate_by = 50
     template_name = 'account/event_list.html'
 
     def get_queryset(self):    
@@ -337,7 +338,10 @@ def event_excel(request):
     events = Log.objects.all().order_by('-id')
     index = 1
     for event in events:
-        worksheet.write('A'+str(index), event.user.first_name)
+        if event.user_id > 0 :
+            worksheet.write('A'+str(index), event.user.first_name)
+        else: 
+            worksheet.write('A'+str(index), u'匿名')
         worksheet.write('B'+str(index), event.event)
         worksheet.write('C'+str(index), str(event.publish))
         index = index + 1
@@ -345,7 +349,7 @@ def event_excel(request):
     workbook.close()
     # xlsx_data contains the Excel file
     response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=Report.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=Report'+str(datetime.datetime.now().date())+'.xlsx'
     xlsx_data = output.getvalue()
     response.write(xlsx_data)
     return response

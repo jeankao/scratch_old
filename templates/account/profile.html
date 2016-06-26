@@ -63,6 +63,12 @@ $(function () {
   
 <section class="wrapper">
   <h1>{{profile.user.first_name}}個人檔案</h1>
+<p>
+班級：
+{% for enroll in enrolls %}
+{{enroll.classroom.name}}({{enroll.seat}}號)
+{% endfor %}
+</p>
   <ul class="tabs">
     <li><a href="#tab1">積分</a></li>
     <li><a href="#tab2">作業</a></li>

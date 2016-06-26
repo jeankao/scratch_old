@@ -15,7 +15,7 @@
         </tr>
         {% for log in events %}
             <tr>
-                <td>{{log.user_id|name}}</td>
+                <td><a href="/account/profile/{{log.user_id}}">{{log.user_id|name}}</a></td>
                 <td>{{log.event}}</a></td>
 				<td>{{log.publish}}</td>
             </tr>

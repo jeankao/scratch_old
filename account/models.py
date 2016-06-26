@@ -42,15 +42,15 @@ class PointHistory(models.Model):
 # 系統記錄
 class Log(models.Model):
     # 使用者序號
-	user_id = models.IntegerField(default=0)
-	# 事件內容
-	event = models.CharField(max_length=100)
+    user_id = models.IntegerField(default=0)
+    # 事件內容
+    event = models.CharField(max_length=100)
 	# 發生時間 
-	publish = models.DateTimeField(default=timezone.now)
+    publish = models.DateTimeField(default=timezone.now)
 
-        @property
-        def user(self):
-            return User.objects.get(id=self.user_id)
+    @property
+    def user(self):
+        return User.objects.get(id=self.user_id)
 	
 	def __unicode__(self):
 		return str(self.user_id)+'--'.self.event
