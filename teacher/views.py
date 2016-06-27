@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 #from django.contrib.auth.models import Group
 from teacher.models import Classroom
 from student.models import Enroll
-from account.models import Log, Message, MessagePoll
+from account.models import Log, Message, MessagePoll, Profile
 from student.models import Enroll, Work, EnrollGroup, Assistant, Exam
 from .forms import ClassroomForm, ScoreForm,  CheckForm1, CheckForm2, CheckForm3, CheckForm4
 #from django.views.generic.edit import ModelFormMixin
@@ -27,6 +27,10 @@ from django.utils import timezone
 def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
 
+# 判斷是否開啟事件記錄
+def is_event_open():
+    return Profile.objects.get(user=User.objects.get(id=1)).event_open
+
 # 列出所有課程
 class ClassroomListView(ListView):
     model = Classroom
@@ -34,8 +38,9 @@ class ClassroomListView(ListView):
     paginate_by = 20
     def get_queryset(self):
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event='查看任課班級')
-        log.save()        
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='查看任課班級')
+            log.save()        
         queryset = Classroom.objects.filter(teacher_id=self.request.user.id).order_by("-id")
         return queryset
         
@@ -51,8 +56,9 @@ class ClassroomCreateView(CreateView):
         enroll = Enroll(classroom_id=self.object.id, student_id=self.request.user.id, seat=0)
         enroll.save()     
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'新增任課班級<'+self.object.name+'>')
-        log.save()                
+        if is_event_open() :            
+            log = Log(user_id=self.request.user.id, event=u'新增任課班級<'+self.object.name+'>')
+            log.save()                
         return redirect("/teacher/classroom")        
         
 # 修改選課密碼
@@ -68,8 +74,9 @@ def classroom_edit(request, classroom_id):
             classroom.password = form.cleaned_data['password']
             classroom.save()
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event=u'修改選課密碼<'+classroom.name+'>')
-            log.save()                    
+            if is_event_open() :                
+                log = Log(user_id=request.user.id, event=u'修改選課密碼<'+classroom.name+'>')
+                log.save()                    
             return redirect('/teacher/classroom')
     else:
         form = ClassroomForm(instance=classroom)
@@ -85,8 +92,9 @@ def unenroll(request, enroll_id, classroom_id):
     enroll.delete()
     classroom_name = Classroom.objects.get(id=classroom_id).name
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'退選<'+classroom_name+'>')
-    log.save()       
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'退選<'+classroom_name+'>')
+        log.save()       
     return redirect('/student/classmate/'+classroom_id)  
 
 # 列出班級所有作業
@@ -96,8 +104,9 @@ def work(request, classroom_id):
             return redirect("homepage")    
         classroom = Classroom.objects.get(id=classroom_id)
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'列出班級所有作業<'+classroom.name+'>')
-        log.save()              
+        if is_event_open() :    
+            log = Log(user_id=request.user.id, event=u'列出班級所有作業<'+classroom.name+'>')
+            log.save()              
         return render_to_response('teacher/work.html', {'lesson_list':lesson_list, 'classroom': classroom}, context_instance=RequestContext(request))
 
 # 列出某作業所有同學名單
@@ -123,7 +132,7 @@ def score(request, classroom_id, index):
 			group_name = EnrollGroup.objects.get(id=enroll.group).name
         except ObjectDoesNotExist:
 			group_name = "沒有組別"
-        assistant = Assistant.objects.filter(student_id=enroll.student_id, lesson=index)
+        assistant = Assistant.objects.filter(classroom_id=classroom_id, student_id=enroll.student_id, lesson=index)
         if assistant.exists():
             classmate_work.append([enroll,work,1, scorer_name, group_name])
         else :
@@ -136,8 +145,9 @@ def score(request, classroom_id, index):
     classmate_work = sorted(classmate_work, key=getKey)
     
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'列出某作業所有同學名單<'+classroom_name+'><'+index+'>')
-    log.save()          
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'列出某作業所有同學名單<'+classroom_name+'><'+index+'>')
+        log.save()          
     return render_to_response('teacher/score.html',{'classmate_work': classmate_work, 'classroom_id':classroom_id, 'lesson':lesson, 'index': index}, context_instance=RequestContext(request))
 
 
@@ -164,8 +174,9 @@ def scoring(request, classroom_id, user_id, index):
                 work = Work(index=index, user_id=user_id, score=form.cleaned_data['score'], publication_date=timezone.now())
                 work.save()
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'新增評分<'+user.first_name+'><'+work.score+'分>')
-                log.save()                      
+                if is_event_open() :            
+                    log = Log(user_id=request.user.id, event=u'新增評分<'+user.first_name+'><'+work.score+'分>')
+                    log.save()                      
             else:
                 if work[0].score < 0 :   
                     # 小老師
@@ -184,9 +195,10 @@ def scoring(request, classroom_id, user_id, index):
                 
                 work.update(score=form.cleaned_data['score'])
                 work.update(scorer=request.user.id)
-               # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'更新評分<'+user.first_name+u'><'+str(work[0].score)+u'分>')
-                log.save()                    
+                # 記錄系統事件
+                if is_event_open() :                   
+                    log = Log(user_id=request.user.id, event=u'更新評分<'+user.first_name+u'><'+str(work[0].score)+u'分>')
+                    log.save()                    
 						
             if is_teacher(request.user, classroom_id):         
                 if form.cleaned_data['assistant']:
@@ -197,8 +209,8 @@ def scoring(request, classroom_id, user_id, index):
                         assistant.save()	
                         
                     # create Message
-                    title = assistant.student.first_name.encode("utf-8") + u"擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + ">"
-                    url = "/student/group/work/" + classroom_id + "/" + str(index)
+                    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + ">"
+                    url = "/student/group/work/" + str(index) + "/" + classroom_id 
                     message = Message.create(title=title, url=url, time=timezone.now())
                     message.save()                        
                     
@@ -241,8 +253,9 @@ def score_peer(request, index, classroom_id, group):
             classmate_work.append([enroll.student,work,1, scorer_name])
         lesson = lesson_list[int(index)-1]
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'小老師評分名單<'+index+'><'+group+'>')
-    log.save()    
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'小老師評分名單<'+index+'><'+group+'>')
+        log.save()    
     return render_to_response('teacher/score_peer.html',{'enrolls':enrolls, 'classmate_work': classmate_work, 'classroom_id':classroom_id, 'lesson':lesson, 'index': index}, context_instance=RequestContext(request))
 
 # 設定為小老師
@@ -254,8 +267,24 @@ def assistant(request, classroom_id, user_id, lesson):
     assistant = Assistant(student_id=user_id, classroom_id=classroom_id, lesson=lesson)
     assistant.save()
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'設為小老師<'+user.first_name+'>')
-    log.save()    
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'設為小老師<'.encode("utf-8")+user.first_name.encode("utf-8")+'><'+ lesson_list[int(lesson)-1][2] + ">")
+        log.save()    
+    
+    # create Message
+    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(lesson)-1][2] + ">"
+    url = "/student/group/work/" + str(lesson) + "/" + classroom_id 
+    message = Message.create(title=title, url=url, time=timezone.now())
+    message.save()                        
+        
+    group = Enroll.objects.get(classroom_id=classroom_id, student_id=assistant.student_id).group
+    if group > 0 :
+        enrolls = Enroll.objects.filter(group = group)
+        for enroll in enrolls:
+            # message for group member
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=enroll.student_id)
+            messagepoll.save()
+    
     return redirect('/teacher/score/'+str(assistant.classroom_id)+"/"+lesson)    
     
 # 取消小老師
@@ -267,8 +296,24 @@ def assistant_cancle(request, classroom_id, user_id, lesson):
     assistant = Assistant.objects.get(student_id=user_id, classroom_id=classroom_id, lesson=lesson)
     assistant.delete()
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'取消小老師<'+user.first_name+'>')
-    log.save()     
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'取消小老師<'.encode("utf-8")+user.first_name.encode("utf-8")+'><'+ lesson_list[int(lesson)-1][2] + ">")
+        log.save()     
+    
+    # create Message
+    title = "<" + assistant.student.first_name.encode("utf-8") + u">取消小老師<".encode("utf-8") + lesson_list[int(lesson)-1][2] + ">"
+    url = "/student/group/work/" + str(lesson) + "/" + classroom_id 
+    message = Message.create(title=title, url=url, time=timezone.now())
+    message.save()                        
+        
+    group = Enroll.objects.get(classroom_id=classroom_id, student_id=assistant.student_id).group
+    if group > 0 :
+        enrolls = Enroll.objects.filter(group = group)
+        for enroll in enrolls:
+            # message for group member
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=enroll.student_id)
+            messagepoll.save()
+    
 
     return redirect('/teacher/score/'+str(assistant.classroom_id)+"/"+lesson)    
     
@@ -308,8 +353,9 @@ def work_group(request, lesson, classroom_id):
             student_groups.append([group, works, group_assistants])
         lesson_data = lesson_list[int(lesson)-1]		
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'以分組顯示作業<'+lesson+'><'+classroom_name+'>')
-        log.save()         
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'以分組顯示作業<'+lesson+'><'+classroom_name+'>')
+            log.save()         
         return render_to_response('teacher/work_group.html', {'lesson':lesson, 'lesson_data':lesson_data, 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
 
 # 心得
@@ -320,8 +366,9 @@ def memo(request, classroom_id):
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by("seat")
         classroom_name = Classroom.objects.get(id=classroom_id).name
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查閱心得<'+classroom_name+'>')
-        log.save()  
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'查閱心得<'+classroom_name+'>')
+            log.save()  
         return render_to_response('teacher/memo.html', {'enrolls':enrolls, 'classroom_name':classroom_name}, context_instance=RequestContext(request))
 
 # 評分某同學某進度心得
@@ -363,8 +410,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll.save()
                 
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'批改12堂課心得<'+user_name+'>')
-                log.save()                  
+                if is_event_open() :                    
+                    log = Log(user_id=request.user.id, event=u'批改12堂課心得<'+user_name+'>')
+                    log.save()                  
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -382,8 +430,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll.save()
 
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'批改實戰入門心得<'+user_name+'>')
-                log.save()      
+                if is_event_open() :                    
+                    log = Log(user_id=request.user.id, event=u'批改實戰入門心得<'+user_name+'>')
+                    log.save()      
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -400,8 +449,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll.score_memo3=form.cleaned_data['score_memo3']
                 enroll.save()
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'批改實戰進擊心得<'+user_name+'>')
-                log.save() 
+                if is_event_open() :                    
+                    log = Log(user_id=request.user.id, event=u'批改實戰進擊心得<'+user_name+'>')
+                    log.save() 
 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
@@ -419,8 +469,9 @@ def check(request, user_id, unit,classroom_id):
                 enroll.score_memo4=form.cleaned_data['score_memo4']
                 enroll.save()
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'批改實戰高手心得<'+user_name+'>')
-                log.save() 						
+                if is_event_open() :                    
+                    log = Log(user_id=request.user.id, event=u'批改實戰高手心得<'+user_name+'>')
+                    log.save() 						
                 if form.cleaned_data['certificate']:		
                     return redirect('/certificate/make_certification/'+unit+'/'+str(enroll.id)+'/certificate')
                 else:
@@ -429,8 +480,9 @@ def check(request, user_id, unit,classroom_id):
             enroll = Enroll.objects.get(student_id=user_id, classroom_id=classroom_id)
             form = CheckForm4(instance=enroll)	
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'查閱個人心得<'+user_name+'>')
-    log.save()  
+    if is_event_open() :        
+        log = Log(user_id=request.user.id, event=u'查閱個人心得<'+user_name+'>')
+        log.save()  
     return render_to_response('teacher/check.html', {'form':form, 'works':works, 'lesson_list':lesson_list, 'user': user, 'unit':unit, 'classroom_id':classroom_id}, context_instance=RequestContext(request))
 
 # 查閱全班測驗卷成績
@@ -455,8 +507,9 @@ def exam_list(request, classroom_id):
                 exam_list.append(times)
             enroll_exam.append([enroll, exam_list])
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查閱測驗卷成績<'+classroom_name+'>')
-        log.save() 	
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'查閱測驗卷成績<'+classroom_name+'>')
+            log.save() 	
         return render_to_response('teacher/exam_list.html', {'classroom_id':classroom_id, 'classroom_name':classroom_name, 'enroll_exam':enroll_exam}, context_instance=RequestContext(request))
 
 # 查詢某項測驗的所有資料
@@ -467,8 +520,9 @@ def exam_detail(request, classroom_id, student_id, exam_id):
         exams = Exam.objects.filter(student_id=student_id, exam_id=exam_id)
         enroll = Enroll.objects.get(classroom_id=classroom_id, student_id=student_id)
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'檢視測驗資料<'+exam_id+'><'+enroll.student.first_name+'>')
-        log.save() 	        
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'檢視測驗資料<'+exam_id+'><'+enroll.student.first_name+'>')
+            log.save() 	        
         return render_to_response('teacher/exam_detail.html', {'exams': exams, 'enroll':enroll}, context_instance=RequestContext(request))
 		
 # 結算成績
@@ -479,8 +533,9 @@ def grade(request, classroom_id):
             return redirect("homepage")
         classroom = Classroom.objects.get(id=classroom_id)
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'結算成績<'+classroom.name+'>')
-        log.save() 	                
+        if is_event_open() :    
+            log = Log(user_id=request.user.id, event=u'結算成績<'+classroom.name+'>')
+            log.save() 	                
         return render_to_response('teacher/grade.html', {'classroom': classroom}, context_instance=RequestContext(request))
 
 @login_required
@@ -492,13 +547,11 @@ def grade_unit1(request, classroom_id):
         if not request.user.id == classroom.teacher_id:
             return redirect("/")
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
-        classroom_name=""
         enroll_group = {}
         data = []
         for enroll in enrolls:
             enroll_score = []
             enroll_grade = []
-            classroom_name = enroll.classroom.name
             # 17個作品
             for i in range(17):
                 try :
@@ -563,9 +616,10 @@ def grade_unit1(request, classroom_id):
             i = i + 1 
 
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查看成績<12堂課><'+classroom.name+'>')
-        log.save() 	
-        return render_to_response('teacher/grade_unit1.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+        if is_event_open() :    
+            log = Log(user_id=request.user.id, event=u'查看成績<12堂課><'+classroom.name+'>')
+            log.save() 	
+        return render_to_response('teacher/grade_unit1.html', {'lesson_list':lesson_list, 'classroom':classroom, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit2(request, classroom_id):
@@ -574,13 +628,11 @@ def grade_unit2(request, classroom_id):
             return redirect("homepage")  
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
         classroom = Classroom.objects.get(id=classroom_id)        
-        classroom_name=""
         data = []
         enroll_group = {}        
         for enroll in enrolls:
             enroll_score = []
             enroll_grade = []
-            classroom_name = enroll.classroom.name
             # 8個作品
             for i in range(8):
                 try :
@@ -625,10 +677,11 @@ def grade_unit2(request, classroom_id):
             i = i + 1
             
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查看成績<實戰入門><'+classroom.name+'>')
-        log.save() 
+        if is_event_open() :    
+            log = Log(user_id=request.user.id, event=u'查看成績<實戰入門><'+classroom.name+'>')
+            log.save() 
 
-        return render_to_response('teacher/grade_unit2.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+        return render_to_response('teacher/grade_unit2.html', {'lesson_list':lesson_list, 'classroom':classroom, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit3(request, classroom_id):
@@ -637,13 +690,11 @@ def grade_unit3(request, classroom_id):
             return redirect("homepage")     
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
         classroom = Classroom.objects.get(id=classroom_id)        
-        classroom_name=""
         data = []
         enroll_group = {}        
         for enroll in enrolls:
             enroll_score = []
             enroll_grade = []
-            classroom_name = enroll.classroom.name
             # 8個作品
             for i in range(8):
                 try :
@@ -688,10 +739,11 @@ def grade_unit3(request, classroom_id):
             i = i + 1 
 
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查看成績<實戰進擊><'+classroom.name+'>')
-        log.save() 
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'查看成績<實戰進擊><'+classroom.name+'>')
+            log.save() 
 
-        return render_to_response('teacher/grade_unit3.html', {'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+        return render_to_response('teacher/grade_unit3.html', {'lesson_list':lesson_list, 'classroom':classroom, 'data':data}, context_instance=RequestContext(request))
 
 @login_required
 def grade_unit4(request, classroom_id):
@@ -700,13 +752,11 @@ def grade_unit4(request, classroom_id):
             return redirect("homepage")     
         enrolls = Enroll.objects.filter(classroom_id=classroom_id).order_by('seat')
         classroom = Classroom.objects.get(id=classroom_id)        
-        classroom_name=""
         data = []
         enroll_group = {}
         for enroll in enrolls:
             enroll_score = []
             enroll_grade = []
-            classroom_name = enroll.classroom.name
             # 8個作品
             for i in range(8):
                 try :
@@ -751,7 +801,8 @@ def grade_unit4(request, classroom_id):
             i = i + 1 
             
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查看成<績實戰高手><'+classroom.name+'>')
-        log.save() 
+        if is_event_open() :            
+            log = Log(user_id=request.user.id, event=u'查看成<績實戰高手><'+classroom.name+'>')
+            log.save() 
             
-        return render_to_response('teacher/grade_unit4.html', {'enroll_group':enroll_group, 'lesson_list':lesson_list, 'classroom_name':classroom_name, 'data':data}, context_instance=RequestContext(request))
+        return render_to_response('teacher/grade_unit4.html', {'enroll_group':enroll_group, 'lesson_list':lesson_list, 'classroom':classroom, 'data':data}, context_instance=RequestContext(request))

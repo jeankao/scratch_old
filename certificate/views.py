@@ -8,7 +8,7 @@ from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 #from django.http import HttpResponse
 from django.contrib.auth.models import User
-from account.models import Log, Message, MessagePoll
+from account.models import Log, Message, MessagePoll, Profile
 from teacher.models import Classroom
 from student.models import Enroll
 from certificate.models import Certificate
@@ -20,6 +20,10 @@ import cStringIO as StringIO
 import os
 from django.utils import timezone
 from django.http import JsonResponse
+
+# 判斷是否開啟事件記錄
+def is_event_open():
+    return Profile.objects.get(user=User.objects.get(id=1)).event_open
 
 # 上傳 Hour of code 證書
 def upload_pic(request):
@@ -46,8 +50,9 @@ def upload_pic(request):
                 m.save()
             classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event='上傳Hour of Code證書成功')
-            log.save()             
+            if is_event_open() :              
+                log = Log(user_id=request.user.id, event='上傳Hour of Code證書成功')
+                log.save()             
             return redirect('/certificate/classroom/0/'+str(classroom_id))
     else :
         try:
@@ -68,8 +73,9 @@ def show(request, unit, enroll_id):
     else :
 		certificate_image = "static/certificate/" + unit + "/" + enroll_id + ".jpg"		
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'查看證書<'+unit+'><'+enroll.student.first_name+'>')
-    log.save() 		
+    if is_event_open() :      
+        log = Log(user_id=request.user.id, event=u'查看證書<'+unit+'><'+enroll.student.first_name+'>')
+        log.save() 		
     return render_to_response('certificate/show.html', {'certificate_image': certificate_image}, context_instance=RequestContext(request))
     
 # 顯示班級證書    
@@ -136,8 +142,9 @@ def classroom(request, unit, classroom_id):
     for data in nodatas:
 		datas.append(data)
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'查看班級證書<'+unit+'><'+classroom_name+'>')
-    log.save() 				
+    if is_event_open() :      
+        log = Log(user_id=request.user.id, event=u'查看班級證書<'+unit+'><'+classroom_name+'>')
+        log.save() 				
     return render_to_response('certificate/classroom.html', {'enrolls':nodatas,'datas': datas, 'unit':unit}, context_instance=RequestContext(request))
 
 def openFile(fileName, mode, context):
@@ -244,8 +251,9 @@ def make(request):
                 classroom = Classroom.objects.get(id=classroom_id)
                 make_image(unit,enroll_id,classroom.teacher_id)
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u"核發證書<"+unit+'><'+enroll.student.first_name+'>')
-                log.save() 	                
+                if is_event_open() :                  
+                    log = Log(user_id=request.user.id, event=u"核發證書<"+unit+'><'+enroll.student.first_name+'>')
+                    log.save() 	                
             else:
                 if unit == "1":
                     enroll.certificate1 = False
@@ -260,8 +268,9 @@ def make(request):
                 except:
                     pass
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'取消證書<'+unit+'><'+enroll.student.first_name+'>')
-                log.save() 	                
+                if is_event_open() :                  
+                    log = Log(user_id=request.user.id, event=u'取消證書<'+unit+'><'+enroll.student.first_name+'>')
+                    log.save() 	                
             enroll.save()
         except ObjectDoesNotExist :
             pass
@@ -289,8 +298,9 @@ def make_certification(request, unit, enroll_id, action):
                 classroom = Classroom.objects.get(id=enroll.classroom_id)
                 make_image(unit,enroll_id,classroom.teacher_id)
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u"核發證書<"+unit+'><'+enroll.student.first_name+'>')
-                log.save()                 
+                if is_event_open() :                  
+                    log = Log(user_id=request.user.id, event=u"核發證書<"+unit+'><'+enroll.student.first_name+'>')
+                    log.save()                 
             else:
                 if unit == "1":
                     enroll.certificate1 = False

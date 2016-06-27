@@ -19,6 +19,8 @@ class Profile(models.Model):
 	creative = models.IntegerField(default=0)
 	# 大頭貼等級
 	avatar = models.IntegerField(default=0)
+	# 事件
+	event_open = models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return str(self.user_id)

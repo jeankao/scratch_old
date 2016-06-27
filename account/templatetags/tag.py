@@ -2,7 +2,9 @@
 from django import template
 from django.contrib.auth.models import User
 from student.models import Enroll
-from django.contrib.auth.models import Group 
+from django.contrib.auth.models import Group
+from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -30,3 +32,11 @@ def show_member(show_id):
 def has_group(user, group_name):
     group =  Group.objects.get(name=group_name) 
     return group in user.groups.all()
+    
+@register.filter(name='new') 
+def new(time):
+    now = timezone.now()
+    if (now - time).days < 2:
+        return mark_safe("<img src=/static/images/new.gif>")
+    else :
+        return ""

@@ -2,6 +2,10 @@
 {% block title %} Teachers {% endblock %}
 {% block content %}
 {% load tag %}
+        {% if is_event_open %}<a href="#" data-action="close" class="event">關閉事件記錄</a>{% else %}<a href="#" data-action="open" class="event">開啟事件記錄</a>{% endif %}|
+        <a href="/account/event/clear" onclick="return confirm('確定要清除嗎?')">清除所有事件</a>|
+        <a href="/account/event/excel">下載所有事件到Excel</a>
+<BR>
 搜尋記錄：
     <form action="."  method="get">
       <input type="text" name = "q"><input type="submit" value="送出"/>
@@ -24,6 +28,32 @@
         {% include "pagination.html" with page=page_obj %}
         
         <BR>
-        <a href="/account/event/clear" onclick="return confirm('確定要清除嗎?')">清除所有事件</a>|
-        <a href="/account/event/excel">下載到Excel</a>
+{% endblock %}
+{% block domready %}
+  $('a.event').click(function(e){
+    var launcher = this;  
+    e.preventDefault();
+    $.post('/account/event/make/',
+      {
+        event_open: $(launcher).data('eventopen'),
+        action: $(launcher).data('action'),
+      },
+      function(data){
+        if (data['status'] == 'ok')
+        {
+          var previous_action = $(launcher).data('action');
+		   if (previous_action == 'open') {
+               $(launcher).html("關閉事件記錄");
+               $(launcher).data('action', 'close');
+           } else {
+               $(launcher).data('action', 'open');
+               $(launcher).html("開啟事件記錄");
+           }
+        }
+		else {
+				alert('hello');
+		}
+      }
+    );
+  });
 {% endblock %}

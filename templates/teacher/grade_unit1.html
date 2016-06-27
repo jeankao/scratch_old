@@ -40,7 +40,7 @@
             {% for score in score_list %}
 			{% for grade in grade_list %}
 			    {% if forloop.counter == forloop.parentloop.counter %}
-            <td>{% if score == -1 %}<font color=red>{% endif%}{{score}}({{grade}}){% if score == -1 %}</font>{% endif%}</td>			
+            <td>{% if score == -1 %}<a target=_blank href="/teacher/scoring/{{classroom.id}}/{{enroll.student_id}}/{{forloop.counter}}"><font color=red>{% endif%}{{score}}({{grade}}){% if score == -1 %}</font></a>{% endif%}</td>			
 			{% endif %}
 			{% endfor %}
 			{% endfor %}

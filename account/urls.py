@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),
     url(r'^event/clear/$', views.clear),
     url(r'^event/excel/$', views.event_excel),
+    url(r'^event/make/$', views.make),    
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
 ]

@@ -20,6 +20,12 @@ from student.lesson import *
 import StringIO
 import xlsxwriter
 import datetime
+from django.utils import timezone
+
+# 判斷是否開啟事件記錄
+def is_event_open():
+    return Profile.objects.get(user=User.objects.get(id=1)).event_open
+
 
 # 網站首頁
 def homepage(request):
@@ -45,8 +51,9 @@ def user_login(request):
                                         # 登入成功，導到大廳
                                         login(request, user)
                                         # 記錄系統事件
-                                        log = Log(user_id=request.user.id, event='登入系統')
-                                        log.save()
+                                        if is_event_open() :
+                                            log = Log(user_id=request.user.id, event='登入系統')
+                                            log.save()
                                         return redirect('dashboard')
                                 else:
                                         message = "Your user is inactive"
@@ -62,16 +69,18 @@ def user_login(request):
 # 記錄登出
 def suss_logout(request, user_id):
     # 記錄系統事件
-    log = Log(user_id=user_id, event='登出系統')
-    log.save()    
+    if is_event_open() :    
+        log = Log(user_id=user_id, event='登出系統')
+        log.save()    
     return redirect('/account/login/')
 
 # 大廳
 @login_required
 def dashboard(request):
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event='查看訊息')
-    log.save()    
+    if is_event_open() :   
+        log = Log(user_id=request.user.id, event='查看訊息')
+        log.save()    
     messages = []
     messagepolls = MessagePoll.objects.filter(reader_id=request.user.id)
     for messagepoll in messagepolls:
@@ -96,8 +105,9 @@ def register(request):
             profile = Profile(user=new_user)
             profile.save()
             # 記錄系統事件
-            log = Log(user_id=new_user.id, event='註冊帳號成功')
-            log.save()                
+            if is_event_open() :   
+                log = Log(user_id=new_user.id, event='註冊帳號成功')
+                log.save()                
             return render(request,
                           'account/register_done.html',
                           {'new_user': new_user})
@@ -132,8 +142,9 @@ def profile(request, user_id):
     # 計算積分    
     credit = profile.work + profile.assistant + profile.debug + profile.creative
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event='查看個人檔案')
-    log.save()        
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event='查看個人檔案')
+        log.save()        
     return render_to_response('account/profile.html',{'works':works, 'lesson_list':lesson_list, 'enrolls':enrolls, 'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
 
 # 修改密碼
@@ -145,8 +156,9 @@ def password(request, user_id):
             user.set_password(request.POST['password'])
             user.save()
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event=u'修改<'+user.first_name+u'>密碼成功')
-            log.save()                
+            if is_event_open() :               
+                log = Log(user_id=request.user.id, event=u'修改<'+user.first_name+u'>密碼成功')
+                log.save()                
             return redirect('homepage')
     else:
         form = PasswordForm()
@@ -163,8 +175,9 @@ def adminrealname(request, user_id):
             user.first_name =form.cleaned_data['first_name']
             user.save()
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
-            log.save()                
+            if is_event_open() :               
+                log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
+                log.save()                
             return redirect('/account/userlist/')
     else:
         user = User.objects.get(id=user_id)
@@ -181,8 +194,9 @@ def realname(request):
             user.first_name =form.cleaned_data['first_name']
             user.save()
             # 記錄系統事件
-            log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
-            log.save()                
+            if is_event_open() :               
+                log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
+                log.save()                
             return redirect('/account/profile/'+str(request.user.id))
     else:
         user = User.objects.get(id=request.user.id)
@@ -208,7 +222,8 @@ class LogListView(ListView):
             log = Log(user_id=self.kwargs['user_id'], event='查看積分--創意秀')
         else :
             log = Log(user_id=self.kwargs['user_id'], event='查看全部積分')                        
-        log.save()                
+        if is_event_open() :               
+            log.save()                
         if not self.kwargs['kind'] == "0" :
             queryset = PointHistory.objects.filter(user_id=self.kwargs['user_id'],kind=self.kwargs['kind']).order_by('-id')
         else :
@@ -229,8 +244,9 @@ class UserListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        log = Log(user_id=1, event='查看帳號')
-        log.save()         
+        if is_event_open() :           
+            log = Log(user_id=1, event='查看帳號')
+            log.save()         
         queryset = User.objects.all().order_by('-id')
         return queryset
     
@@ -251,11 +267,30 @@ def make(request):
             log = Log(user_id=1, event=u'設為教師<'+user.first_name+'>')
             log.save()                        
             group.user_set.add(user)
+            # create Message
+            title = request.user.first_name + u"設您為教師<img src='/static/images/teacher.png'>"
+            url = "/teacher/classroom"
+            message = Message.create(title=title, url=url, time=timezone.now())
+            message.save()                        
+                    
+            # message for group member
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=user_id)
+            messagepoll.save()    
         else : 
             # 記錄系統事件
-            log = Log(user_id=1, event=u'取消教師<'+user.first_name+'>')
-            log.save()              
-            group.user_set.remove(user)               
+            if is_event_open() :               
+                log = Log(user_id=1, event=u'取消教師<'+user.first_name+'>')
+                log.save()              
+            group.user_set.remove(user)  
+            # create Message
+            title = request.user.first_name + u"取消您為教師"
+            url = "/homepage"
+            message = Message.create(title=title, url=url, time=timezone.now())
+            message.save()                        
+                    
+            # message for group member
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=user_id)
+            messagepoll.save()               
         return JsonResponse({'status':'ok'}, safe=False)
     else:
         return JsonResponse({'status':user.first_name}, safe=False)        
@@ -268,8 +303,9 @@ class EventListView(ListView):
 
     def get_queryset(self):    
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event='查看事件')
-        log.save()       
+        if is_event_open() :           
+            log = Log(user_id=self.request.user.id, event='查看事件')
+            log.save()       
         if self.kwargs['user_id'] == "0":
             if self.request.GET.get('q') != None:
                 queryset = Log.objects.filter(event__icontains=self.request.GET.get('q')).order_by('-id')
@@ -287,6 +323,7 @@ class EventListView(ListView):
         context = super(EventListView, self).get_context_data(**kwargs)
         q = self.request.GET.get('q')
         context.update({'q': q})
+        context['is_event_open'] = Profile.objects.get(user=User.objects.get(id=1)).event_open
         return context	
 	
 # 下載檔案
@@ -315,21 +352,32 @@ def download(request, filename):
         filename_header = 'filename*=UTF-8\'\'%s' % urllib.quote(file_name.encode('utf-8'))
     response['Content-Disposition'] = 'attachment; ' + filename_header
     # 記錄系統事件
-    log = Log(user_id=request.user.id, event=u'下載檔案<'+filename+'>')
-    log.save()     
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event=u'下載檔案<'+filename+'>')
+        log.save()     
     return response
 
 def avatar(request):
     profile = Profile.objects.get(user = request.user)
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event=u'查看個人圖像')
+        log.save()        
     return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
     
 def clear(request):
-    events = Log.objects.all()
-    for event in events:
-        event.delete()
+    Log.objects.all().delete()
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event=u'清除所有事件')
+        log.save()            
     return redirect("/account/event/0")
     
 def event_excel(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event=u'下載事件到Excel')
+        log.save()        
     output = StringIO.StringIO()
     workbook = xlsxwriter.Workbook(output)    
     #workbook = xlsxwriter.Workbook('hello.xlsx')
@@ -354,4 +402,15 @@ def event_excel(request):
     response.write(xlsx_data)
     return response
 
-    
+def make(request):
+    action = request.POST.get('action')
+    if action :
+            profile = Profile.objects.get(user=User.objects.get(id=1))
+            if action == 'open':
+                profile.event_open = True
+            else :
+                profile.event_open = False
+            profile.save()
+            return JsonResponse({'status':'ok'}, safe=False)
+    else:
+            return JsonResponse({'status':'ko'}, safe=False)

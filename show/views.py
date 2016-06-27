@@ -26,6 +26,10 @@ import os
 def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
 
+# 判斷是否開啟事件記錄
+def is_event_open():
+    return Profile.objects.get(user=User.objects.get(id=1)).event_open
+
 # 所有組別
 def group(request, classroom_id):
         classroom_name = Classroom.objects.get(id=classroom_id).name    
@@ -51,8 +55,9 @@ def group(request, classroom_id):
 	    nogroup = sorted(nogroup, key=getKey)            
             
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'查看創意秀組別<'+classroom_name+'>')
-        log.save()              
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event=u'查看創意秀組別<'+classroom_name+'>')
+            log.save()              
         return render_to_response('show/group.html', {'nogroup': nogroup, 'group_show_open':group_show_open, 'teacher':is_teacher(request.user, classroom_id), 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
 
 # 新增組別
@@ -69,8 +74,9 @@ def group_add(request, classroom_id):
                     review.save()
                     
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'新增創意秀組別<'+group.name+'><'+classroom_name+'>')
-                log.save()                      
+                if is_event_open() :                 
+                    log = Log(user_id=request.user.id, event=u'新增創意秀組別<'+group.name+'><'+classroom_name+'>')
+                    log.save()                      
                 return redirect('/show/group/'+classroom_id)
         else:
             form = GroupForm()
@@ -83,8 +89,9 @@ def group_enroll(request, classroom_id,  group_id):
         enroll = Enroll.objects.filter(student_id=request.user.id, classroom_id=classroom_id)
         enroll.update(group_show=group_id)
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'加入創意秀組別<'+group_name+'><'+classroom_name+'>')
-        log.save()                      
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event=u'加入創意秀組別<'+group_name+'><'+classroom_name+'>')
+            log.save()                      
         return redirect('/show/group/'+classroom_id)
 
 # 刪除組別
@@ -93,8 +100,9 @@ def group_delete(request, group_id, classroom_id):
         group_name = ShowGroup(id=group_id).name    
         group = ShowGroup.objects.get(id=group_id)
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'刪除創意秀組別<'+group_name+'><'+classroom_name+'>')
-        log.save()     
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event=u'刪除創意秀組別<'+group_name+'><'+classroom_name+'>')
+            log.save()     
         group.delete()
         return redirect('/show/group/'+classroom_id)    
 
@@ -105,14 +113,16 @@ def group_open(request, classroom_id, action):
         classroom.group_show_open=True
         classroom.save()
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'開放創意秀選組<'+classroom.name+'>')
-        log.save()         
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event=u'開放創意秀選組<'+classroom.name+'>')
+            log.save()         
     else :
         classroom.group_show_open=False
         classroom.save()
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event=u'關閉創意秀選組<'+classroom.name+'>')
-        log.save()          
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event=u'關閉創意秀選組<'+classroom.name+'>')
+            log.save()          
     return redirect('/show/group/'+classroom_id)  	
 	
 
@@ -160,8 +170,9 @@ class ShowUpdateView(UpdateView):
             obj.save()
         
             # 記錄系統事件
-            log = Log(user_id=self.request.user.id, event=u'上傳創意秀<'+obj.name+'>')
-            log.save()
+            if is_event_open() :             
+                log = Log(user_id=self.request.user.id, event=u'上傳創意秀<'+obj.name+'>')
+                log.save()
             return redirect('/show/group/'+self.kwargs['classroom_id'])
         else :
             return redirect('homepage')
@@ -223,8 +234,9 @@ class ReviewUpdateView(UpdateView):
         obj.done = True
         obj.save()
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'評分創意秀<'+show.name+'>')
-        log.save()        
+        if is_event_open() :         
+            log = Log(user_id=self.request.user.id, event=u'評分創意秀<'+show.name+'>')
+            log.save()        
         return redirect('/show/detail/'+self.kwargs['show_id'])
 
 # 所有同學的評分		
@@ -234,8 +246,9 @@ class ReviewListView(ListView):
     def get_queryset(self):
         show = ShowGroup.objects.get(id=self.kwargs['show_id'])        
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'查看創意秀所有評分<'+show.name+'>')
-        log.save()  
+        if is_event_open() :         
+            log = Log(user_id=self.request.user.id, event=u'查看創意秀所有評分<'+show.name+'>')
+            log.save()  
         return ShowReview.objects.filter(show_id=self.kwargs['show_id'])  		
 
     def get_context_data(self, **kwargs):
@@ -283,8 +296,9 @@ class RankListView(ListView):
             lists.append([show, students, score, reviews.count(), self.kwargs['rank_id']])
             lists= sorted(lists, key=getKey, reverse=True)
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'查看創意秀排行榜<'+self.kwargs['rank_id']+'>')
-        log.save()  
+        if is_event_open() :         
+            log = Log(user_id=self.request.user.id, event=u'查看創意秀排行榜<'+self.kwargs['rank_id']+'>')
+            log.save()  
         return lists
 
 # 教師查看創意秀評分情況
@@ -311,8 +325,9 @@ class TeacherListView(ListView):
                     lists[enroll.id].append([enroll, review, show, members])
 		lists = OrderedDict(sorted(lists.items(), key=lambda x: x[1][0][0].seat))
         # 記錄系統事件
-        log = Log(user_id=self.request.user.id, event=u'查看創意秀評分狀況<'+classroom_name+'>')
-        log.save()  
+        if is_event_open() :         
+            log = Log(user_id=self.request.user.id, event=u'查看創意秀評分狀況<'+classroom_name+'>')
+            log.save()  
 		
         return lists
         
@@ -329,7 +344,8 @@ class GalleryListView(ListView):
             log = Log(user_id=self.request.user.id, event=u'查看藝廊')
         else :
             log = Log(user_id=0,event=u'查看藝廊')
-        log.save() 
+        if is_event_open() :             
+            log.save() 
         
         return ShowGroup.objects.filter(open=True).order_by('-publish')
 		
@@ -368,13 +384,15 @@ def make(request):
             if action == 'open':
                 show.open = True
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'藝廊上架<'+show.name+'>')
-                log.save()                 
+                if is_event_open() :                 
+                    log = Log(user_id=request.user.id, event=u'藝廊上架<'+show.name+'>')
+                    log.save()                 
             else:
                 show.open = False		
                 # 記錄系統事件
-                log = Log(user_id=request.user.id, event=u'藝廊下架<'+show.name+'>')
-                log.save()                          
+                if is_event_open() :                 
+                    log = Log(user_id=request.user.id, event=u'藝廊下架<'+show.name+'>')
+                    log.save()                          
             show.save()
         except ObjectDoesNotExist :
             pass
@@ -431,8 +449,9 @@ def upload_pic(request, show_id):
             pass
         classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
         # 記錄系統事件
-        log = Log(user_id=request.user.id, event='上傳Dr Scratch分析圖成功')
-        log.save()             
+        if is_event_open() :         
+            log = Log(user_id=request.user.id, event='上傳Dr Scratch分析圖成功')
+            log.save()             
         return redirect('/show/detail/'+show_id+'/#drscratch')
     else :
         try:
