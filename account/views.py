@@ -21,6 +21,7 @@ import StringIO
 import xlsxwriter
 import datetime
 from django.utils import timezone
+from django.utils.timezone import localtime
 
 # 判斷是否開啟事件記錄
 def is_event_open():
@@ -391,7 +392,7 @@ def event_excel(request):
         else: 
             worksheet.write('A'+str(index), u'匿名')
         worksheet.write('B'+str(index), event.event)
-        worksheet.write('C'+str(index), str(event.publish))
+        worksheet.write('C'+str(index), str(localtime(event.publish)))
         index = index + 1
 
     workbook.close()
