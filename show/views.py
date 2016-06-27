@@ -13,6 +13,7 @@ from django.http import HttpResponseRedirect
 from django.utils import timezone
 from django.db.models import Sum
 from account.models import Profile, PointHistory, Log
+from django.contrib.auth.models import User
 from account.avatar import *
 from django.core.exceptions import ObjectDoesNotExist
 from collections import OrderedDict
