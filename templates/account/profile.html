@@ -58,11 +58,12 @@ $(function () {
 {% block content %}
 {% load tag %}
 {% if user.id == user_id|to_int %}
-<a href="/account/password-change">修改密碼</a>　<a href="/account/realname">修改姓名</a><BR><BR>
+<a href="/account/password-change">修改密碼</a>　<a href="/account/realname">修改姓名</a>　<a href="/account/school/{{request.user.id}}">修改學校</a><BR><BR>
 {% endif %}
   
 <section class="wrapper">
   <h1>{{profile.user.first_name}}個人檔案</h1>
+<p>學校：{{user.last_name}}</p>
 <p>
 班級：
 {% for enroll in enrolls %}

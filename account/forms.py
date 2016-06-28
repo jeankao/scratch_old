@@ -80,6 +80,16 @@ class RealnameForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RealnameForm, self).__init__(*args, **kwargs)
         self.fields['first_name'].label = "真實姓名"
+        
+# 修改學校表單       
+class SchoolForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['last_name']
+            
+    def __init__(self, *args, **kwargs):
+        super(SchoolForm, self).__init__(*args, **kwargs)
+        self.fields['last_name'].label = "學校名稱"        
 
 # 查詢事件
 class EventForm(forms.ModelForm):

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm
+from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm
 from django.contrib.auth.models import User
 from account.models import Profile, PointHistory, Log, Message, MessagePoll
 from student.models import Enroll, Work, Assistant
@@ -205,6 +205,25 @@ def realname(request):
         form = RealnameForm(instance=user)
 
     return render_to_response('account/realname.html',{'form': form}, context_instance=RequestContext(request))
+
+# 修改學校名稱
+def adminschool(request, user_id):
+    if request.method == 'POST':
+        form = SchoolForm(request.POST)
+        if form.is_valid():
+            user = User.objects.get(id=user_id)
+            user.last_name =form.cleaned_data['last_name']
+            user.save()
+            # 記錄系統事件
+            if is_event_open() :               
+                log = Log(user_id=request.user.id, event=u'修改學校名稱<'+user.first_name+'>')
+                log.save()                
+            return redirect('/account/profile/'+str(request.user.id))
+    else:
+        user = User.objects.get(id=request.user.id)
+        form = SchoolForm(instance=user)
+
+    return render_to_response('account/school.html',{'form': form}, context_instance=RequestContext(request))
 
 # 記錄積分項目
 class LogListView(ListView):
