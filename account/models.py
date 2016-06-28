@@ -59,7 +59,10 @@ class Log(models.Model):
 
 # 大廳訊息	
 class Message(models.Model):
+    author_id = models.IntegerField(default=0)
+    classroom_id = models.IntegerField(default=0)
     title = models.CharField(max_length=250)
+    content = models.TextField(default='')
     url = models.CharField(max_length=250)
     time = models.DateTimeField(auto_now_add=True)
 

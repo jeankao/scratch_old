@@ -85,7 +85,7 @@ def dashboard(request):
     messages = []
     messagepolls = MessagePoll.objects.filter(reader_id=request.user.id)
     for messagepoll in messagepolls:
-        messages.append(messagepoll.message)
+        messages.append([messagepoll, messagepoll.message])
     return render(request,
                   'account/dashboard.html',
                   {'section': 'dashboard', 
@@ -285,7 +285,7 @@ def make(request):
             group.user_set.remove(user)  
             # create Message
             title = "<"+ request.user.first_name + u">取消您為教師"
-            url = "/homepage"
+            url = "/"
             message = Message.create(title=title, url=url, time=timezone.now())
             message.save()                        
                     
@@ -415,3 +415,12 @@ def event_make(request):
             return JsonResponse({'status':'ok'}, safe=False)
     else:
             return JsonResponse({'status':'ko'}, safe=False)
+            
+def message(request, messagepoll_id):
+    messagepoll = MessagePoll.objects.get(id=messagepoll_id)
+    messagepoll.read = True
+    messagepoll.save()
+    message = Message.objects.get(id=messagepoll.message_id)
+    return redirect(message.url)
+    
+    

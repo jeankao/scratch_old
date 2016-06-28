@@ -36,7 +36,7 @@ def has_group(user, group_name):
 @register.filter(name='new') 
 def new(time):
     now = timezone.now()
-    if (now - time).days < 2:
+    if (now - time).days < 7:
         return mark_safe("<img src=/static/images/new.gif>")
     else :
         return ""

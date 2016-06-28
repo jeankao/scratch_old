@@ -2,13 +2,12 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 from . import views
-from teacher.views import ClassroomListView, ClassroomCreateView
+from teacher.views import ClassroomListView, ClassroomCreateView, AnnounceListView, AnnounceCreateView
 #, ClassroomDetails
 
 urlpatterns = [
     # post views
     url(r'^classroom/$', login_required(ClassroomListView.as_view()), name='classroom-list'),
-    #url(r'^classroom/all/$', login_required(ClassroomList.as_view(all_items=True)), name='classroom-list-all'),
     url(r'^classroom/add/$', login_required(ClassroomCreateView.as_view()), name='classroom-add'),
     url(r'^classroom/edit/(?P<classroom_id>\d+)/$', views.classroom_edit, name='classroom-edit'),
     # 退選
@@ -37,5 +36,10 @@ urlpatterns = [
     url(r'^grade2/(?P<classroom_id>\d+)/$', views.grade_unit2),
     url(r'^grade3/(?P<classroom_id>\d+)/$', views.grade_unit3),
     url(r'^grade4/(?P<classroom_id>\d+)/$', views.grade_unit4),	
+    
+    #公告
+    url(r'^announce/(?P<classroom_id>\d+)/$', login_required(AnnounceListView.as_view()), name='announce-list'),
+    url(r'^announce/add/(?P<classroom_id>\d+)/$', login_required(AnnounceCreateView.as_view()), name='announce-add'),  
+    url(r'^announce/detail/(?P<message_id>\d+)/$', views.announce_detail),
 	
 ]

@@ -14,7 +14,7 @@ from teacher.models import Classroom
 from student.models import Enroll
 from account.models import Log, Message, MessagePoll, Profile
 from student.models import Enroll, Work, EnrollGroup, Assistant, Exam
-from .forms import ClassroomForm, ScoreForm,  CheckForm1, CheckForm2, CheckForm3, CheckForm4
+from .forms import ClassroomForm, ScoreForm,  CheckForm1, CheckForm2, CheckForm3, CheckForm4, AnnounceForm
 #from django.views.generic.edit import ModelFormMixin
 #from django.http import HttpResponseRedirect
 from student.lesson import *
@@ -237,6 +237,11 @@ def scoring(request, classroom_id, user_id, index):
 
 # 小老師評分名單
 def score_peer(request, index, classroom_id, group):
+    try:
+        assistant = Assistant.objects.get(lesson=index, classroom_id=classroom_id, student_id=request.user.id)
+    except ObjectDoesNotExist:
+        return redirect("/student/group/work/"+classroom_id+"/"+index)
+
     enrolls = Enroll.objects.filter(classroom_id=classroom_id, group=group)
     lesson = ""
     classmate_work = []
@@ -806,3 +811,69 @@ def grade_unit4(request, classroom_id):
             log.save() 
             
         return render_to_response('teacher/grade_unit4.html', {'enroll_group':enroll_group, 'lesson_list':lesson_list, 'classroom':classroom, 'data':data}, context_instance=RequestContext(request))
+
+# 列出所有公告
+class AnnounceListView(ListView):
+    model = Message
+    context_object_name = 'messages'
+    template_name = 'teacher/announce_list.html'    
+    paginate_by = 20
+    def get_queryset(self):
+        # 記錄系統事件
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='查看班級公告')
+            log.save()        
+        queryset = Message.objects.filter(author_id=self.request.user.id).order_by("-id")
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super(AnnounceListView, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        return context	        
+        
+#新增一個公告
+class AnnounceCreateView(CreateView):
+    model = Message
+    form_class = AnnounceForm
+    template_name = 'teacher/announce_form.html'     
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.author_id = self.request.user.id
+        self.object.classroom_id = self.kwargs['classroom_id']
+        self.object.save()
+        self.object.url = "/teacher/announce/detail/" + str(self.object.id)
+        self.object.save()
+        # 班級學生訊息
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for enroll in enrolls:
+            messagepoll = MessagePoll(message_id=self.object.id, reader_id=enroll.student_id)
+            messagepoll.save()
+        # 記錄系統事件
+        if is_event_open() :            
+            log = Log(user_id=self.request.user.id, event=u'新增公告<'+self.object.title+'>')
+            log.save()                
+        return redirect("/teacher/announce/"+self.kwargs['classroom_id'])       
+        
+    def get_context_data(self, **kwargs):
+        context = super(AnnounceCreateView, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        return context	        
+        
+# 查看藝郎某項目
+def announce_detail(request, message_id):
+    message = Message.objects.get(id=message_id)
+    classroom = Classroom.objects.get(id=message.classroom_id)
+    
+    announce_reads = []
+    
+    messagepolls = MessagePoll.objects.filter(message_id=message_id)
+    for messagepoll in messagepolls:
+        enroll = Enroll.objects.get(classroom_id=message.classroom_id, student_id=messagepoll.reader_id)
+        announce_reads.append([enroll.seat, enroll.student.first_name, messagepoll])
+    
+    def getKey(custom):
+        return custom[0]	
+    announce_reads = sorted(announce_reads, key=getKey)
+    return render_to_response('teacher/announce_detail.html', {'message':message, 'classroom':classroom, 'announce_reads':announce_reads}, context_instance=RequestContext(request))
+
+        

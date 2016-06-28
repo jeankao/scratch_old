@@ -35,4 +35,6 @@ urlpatterns = [
     url(r'^event/make/$', views.event_make),    
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
+    # 讀取訊息
+    url(r'^message/(?P<messagepoll_id>\d+)/$', views.message)
 ]
