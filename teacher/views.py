@@ -823,7 +823,7 @@ class AnnounceListView(ListView):
         if is_event_open() :    
             log = Log(user_id=self.request.user.id, event='查看班級公告')
             log.save()        
-        queryset = Message.objects.filter(author_id=self.request.user.id).order_by("-id")
+        queryset = Message.objects.filter(classroom_id=self.kwargs['classroom_id'], author_id=self.request.user.id).order_by("-id")
         return queryset
         
     def get_context_data(self, **kwargs):
@@ -838,6 +838,7 @@ class AnnounceCreateView(CreateView):
     template_name = 'teacher/announce_form.html'     
     def form_valid(self, form):
         self.object = form.save(commit=False)
+        self.object.title = u"[公告]" + self.object.title
         self.object.author_id = self.request.user.id
         self.object.classroom_id = self.kwargs['classroom_id']
         self.object.save()

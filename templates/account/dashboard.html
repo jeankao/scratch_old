@@ -6,7 +6,7 @@
 {% block content %}
   <h1>訊息</h1>
   <Table>
-{% for messagepoll, message in messages reversed %}<Tr><td><img src="/static/images/scratch1.gif"> {{ message.time}}
+{% for messagepoll, message in messages %}<Tr><td><img src="/static/images/scratch1.gif"> {{ message.time}}
 <a href="/account/message/{{ messagepoll.id }}">{{ message.title|safe }}</a>
 {% if not messagepoll.read %}
 {{ message.time|new }}
@@ -14,4 +14,5 @@
 </Tr>
 {% endfor %}
 </Table>
+ {% include "pagination.html" with page=page_obj %}          
 {% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %} Teachers {% endblock %}
+{% load tag %}
+{% block content %}
+        <h1>私訊對象：{{messagepoll.reader_id|name}}</h1>
+        <table>
+            <tr>
+                <td>時間</td><td>{{message.time}}</td>
+            </tr>
+            <tr>
+                <td>主旨</td> <td>{{message.title}}</td>
+            </tr>
+            <tr>
+                <td>內容</td><td>{{message.content| linebreaksbr}}</td>
+            </tr>
+           
+        </table>
+{% endblock %}

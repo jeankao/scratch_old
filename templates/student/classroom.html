@@ -1,22 +1,29 @@
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
+{% load tag %}
 {% block content %}
         <a href="add">加入班級</a></BR>
         <table>
         {% for enroll in enrolls %}
         <tr>
-            <td rowspan=5>班級：{{enroll.classroom}}</td>
-            <td rowspan=5>座號：{{enroll.seat}}</td>
+            <td rowspan=6>班級：{{enroll.classroom}}</td>
+            <td rowspan=6>座號：{{enroll.seat}}</td>
             <td>基本資料：
-			<a href="../classroom/seat/{{enroll.id}}/{{enroll.classroom_id}}">座號</a>｜			
-			<a href="../group/{{enroll.classroom_id}}">組別</a>｜
-			<a href="../classmate/{{enroll.classroom_id}}">同學</a>｜
-			<a href="../work/{{enroll.classroom_id}}">作業</a>｜
-			<a href="../memo_all/{{enroll.classroom_id}}">心得</a>｜
-			<a href="../bug/class/{{enroll.classroom_id}}">Bug專區</a>｜
-			<a href="../bug/add/{{enroll.classroom_id}}">Bug求救</a>｜			
+			<a href="/student/classroom/seat/{{enroll.id}}/{{enroll.classroom_id}}">座號</a>｜			
+			<a href="/student/group/{{enroll.classroom_id}}">組別</a>｜
+			<a href="/student/classmate/{{enroll.classroom_id}}">同學</a>｜
+			<a href="/student/work/{{enroll.classroom_id}}">作業</a>｜
+			<a href="/student/memo_all/{{enroll.classroom_id}}">心得</a>｜
 			</td>
 		</tr>
+        <tr>
+            <td>互動：
+		    <a href="/account/line/">我的私訊</a>｜			
+			<a href="/account/line/add/{{enroll.classroom_id|teacher_id}}">私訊老師</a>｜
+			<a href="/student/bug/class/{{enroll.classroom_id}}">Bug專區</a>｜
+			<a href="/student/bug/add/{{enroll.classroom_id}}">Bug求救</a>｜			
+			</td>
+		</tr>		
         <tr>
             <td>創意秀：
 			<a href="/show/group/{{enroll.classroom_id}}">組別</a>｜

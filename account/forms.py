@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from django import forms
 from django.contrib.auth.models import User
-from account.models import Log
+from account.models import Log, Message
 
 # 使用者登入表單
 class LoginForm(forms.Form):
@@ -91,3 +91,17 @@ class EventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.fields['event'].label = "事件名稱"        
+        
+# 新增一個私訊表單
+class LineForm(forms.ModelForm):
+        class Meta:
+           model = Message
+           fields = ['title','content']
+        
+        def __init__(self, *args, **kwargs):
+            super(LineForm, self).__init__(*args, **kwargs)
+            self.fields['title'].label = "主旨"
+            self.fields['title'].widget.attrs['size'] = 50
+            self.fields['content'].label = "內容"
+            self.fields['content'].widget.attrs['cols'] = 50
+            self.fields['content'].widget.attrs['rows'] = 20                              

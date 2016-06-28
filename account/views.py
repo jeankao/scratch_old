@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm
+from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm
 from django.contrib.auth.models import User
 from account.models import Profile, PointHistory, Log, Message, MessagePoll
 from student.models import Enroll, Work, Assistant
 from django.core.exceptions import ObjectDoesNotExist
 from account.templatetags import tag 
-from django.views.generic import ListView
+from django.views.generic import ListView, CreateView
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 import sys, os
@@ -75,22 +75,23 @@ def suss_logout(request, user_id):
         log.save()    
     return redirect('/account/login/')
 
-# 大廳
-@login_required
-def dashboard(request):
-    # 記錄系統事件
-    if is_event_open() :   
-        log = Log(user_id=request.user.id, event='查看訊息')
-        log.save()    
-    messages = []
-    messagepolls = MessagePoll.objects.filter(reader_id=request.user.id)
-    for messagepoll in messagepolls:
-        messages.append([messagepoll, messagepoll.message])
-    return render(request,
-                  'account/dashboard.html',
-                  {'section': 'dashboard', 
-                   'messages': messages})
+# 訊息
+class MessageListView(ListView):
+    context_object_name = 'messages'
+    paginate_by = 20
+    template_name = 'account/dashboard.html'
 
+    def get_queryset(self):    
+        # 記錄系統事件
+        if is_event_open() :           
+            log = Log(user_id=self.request.user.id, event='查看訊息')
+            log.save()          
+        query = []
+        messagepolls = MessagePoll.objects.filter(reader_id=self.request.user.id).order_by('-message_id')
+        for messagepoll in messagepolls:
+            query.append([messagepoll, messagepoll.message])
+        return query
+        
 # 註冊帳號                  
 def register(request):
     if request.method == 'POST':
@@ -423,4 +424,56 @@ def message(request, messagepoll_id):
     message = Message.objects.get(id=messagepoll.message_id)
     return redirect(message.url)
     
+# 列出所有私訊
+class LineListView(ListView):
+    model = Message
+    context_object_name = 'messages'
+    template_name = 'account/line_list.html'    
+    paginate_by = 20
     
+    def get_queryset(self):
+        # 記錄系統事件
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='查看所有私訊')
+            log.save()        
+        queryset = Message.objects.filter(author_id=self.request.user.id, classroom_id=0).order_by("-id")
+        return queryset
+        
+        
+#新增一個私訊
+class LineCreateView(CreateView):
+    model = Message
+    form_class = LineForm
+    template_name = 'account/line_form.html'     
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        user_name = User.objects.get(id=self.request.user.id).first_name
+        self.object.title = u"[私訊]" + user_name + ":" + self.object.title
+        self.object.author_id = self.request.user.id
+        self.object.save()
+        self.object.url = "/account/line/detail/" + str(self.object.id)
+        self.object.save()
+        # 訊息
+        messagepoll = MessagePoll(message_id=self.object.id, reader_id=self.kwargs['user_id'])
+        messagepoll.save()
+        # 記錄系統事件
+        if is_event_open() :            
+            log = Log(user_id=self.request.user.id, event=u'新增私訊<'+self.object.title+'>')
+            log.save()                
+        return redirect("/account/line/")       
+        
+    def get_context_data(self, **kwargs):
+        context = super(LineCreateView, self).get_context_data(**kwargs)
+        context['user_id'] = self.kwargs['user_id']
+        return context	 
+        
+# 查看私訊內容
+def line_detail(request, message_id):
+    message = Message.objects.get(id=message_id)
+    try:
+        messagepoll = MessagePoll.objects.get(message_id=message_id)
+    except :
+        pass
+    return render_to_response('account/line_detail.html', {'message':message, 'messagepoll':messagepoll}, context_instance=RequestContext(request))
+
+                

@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
+{% load tag %}
 {% block content %}
-        <h1>班級名稱：{{classroom.name}}</h1>
-        <a href="/teacher/announce/add/{{classroom.id}}">新增公告</a></BR>
         <table>
             <tr>
                 <td>時間</td>
+                <td>對象</td>                
                 <td>主旨</td>
+            </tr>
         {% for message in messages %}
             <tr>
             <td>{{message.time}}</td>
-            <td><a href="/teacher/announce/detail/{{message.id}}">{{message.title}}</a></td>
+            <td>{{message.id|reader_name}}</td>
+            <td><a href="/account/line/detail/{{message.id}}">{{message.title}}</a></td>
             </tr>
         {% endfor %}
         </table>

@@ -5,7 +5,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # post views
-    url(r'^$', views.dashboard, name='dashboard'),    
+    url(r'^$',  views.MessageListView.as_view(), name='dashboard'),    
     #登入
     url(r'^login/$', views.user_login, name='login'),
     #登出
@@ -36,5 +36,9 @@ urlpatterns = [
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
     # 讀取訊息
-    url(r'^message/(?P<messagepoll_id>\d+)/$', views.message)
+    url(r'^message/(?P<messagepoll_id>\d+)/$', views.message),
+    # 私訊
+    url(r'^line/$', views.LineListView.as_view()),    
+    url(r'^line/add/(?P<user_id>\d+)/$', views.LineCreateView.as_view()),
+    url(r'^line/detail/(?P<message_id>\d+)/$', views.line_detail),    
 ]
