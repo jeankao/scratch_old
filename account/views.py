@@ -25,7 +25,7 @@ from django.utils.timezone import localtime
 
 # 判斷是否開啟事件記錄
 def is_event_open():
-    return Profile.objects.get(user=User.objects.get(id=1)).event_open
+        return Profile.objects.get(user=User.objects.get(id=1)).event_open
 
 
 # 網站首頁
@@ -254,7 +254,6 @@ class UserListView(ListView):
 # Ajax 設為教師、取消教師
 def make(request):
     user_id = request.POST.get('userid')
-    user = User.objects.get(id=1)        
     action = request.POST.get('action')
     if user_id and action :
         user = User.objects.get(id=user_id)           
@@ -265,11 +264,12 @@ def make(request):
             group.save()
         if action == 'set':            
             # 記錄系統事件
-            log = Log(user_id=1, event=u'設為教師<'+user.first_name+'>')
-            log.save()                        
+            if is_event_open() : 
+                log = Log(user_id=1, event=u'設為教師<'+user.first_name+'>')
+                log.save()                        
             group.user_set.add(user)
             # create Message
-            title = request.user.first_name + u"設您為教師<img src='/static/images/teacher.png'>"
+            title = "<" + request.user.first_name + u">設您為教師<img src='/static/images/teacher.png'>"
             url = "/teacher/classroom"
             message = Message.create(title=title, url=url, time=timezone.now())
             message.save()                        
@@ -284,7 +284,7 @@ def make(request):
                 log.save()              
             group.user_set.remove(user)  
             # create Message
-            title = request.user.first_name + u"取消您為教師"
+            title = "<"+ request.user.first_name + u">取消您為教師"
             url = "/homepage"
             message = Message.create(title=title, url=url, time=timezone.now())
             message.save()                        

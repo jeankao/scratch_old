@@ -209,8 +209,8 @@ def scoring(request, classroom_id, user_id, index):
                         assistant.save()	
                         
                     # create Message
-                    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + ">"
-                    url = "/student/group/work/" + str(index) + "/" + classroom_id 
+                    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + "><img src='/static/images/assistant.png'>"
+                    url = "/teacher/score_peer/" + str(index) + "/" + classroom_id + "/" + str(enroll.group) 
                     message = Message.create(title=title, url=url, time=timezone.now())
                     message.save()                        
                     
