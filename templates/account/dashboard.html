@@ -9,7 +9,7 @@
 {% for messagepoll, message in messages %}<Tr><td><img src="/static/images/scratch1.gif"> {{ message.time}}
 <a href="/account/message/{{ messagepoll.id }}">{{ message.title|safe }}</a>
 {% if not messagepoll.read %}
-{{ message.time|new }}
+<img src="/static/images/new.gif">
 {% endif %}
 </Tr>
 {% endfor %}

@@ -55,10 +55,6 @@ def has_group(user, group_name):
     group =  Group.objects.get(name=group_name) 
     return group in user.groups.all()
     
-@register.filter(name='new') 
-def new(time):
-    now = timezone.now()
-    if (now - time).days < 7:
-        return mark_safe("<img src=/static/images/new.gif>")
-    else :
-        return ""
+@register.filter(name='unread') 
+def unread(user_id):
+    return MessagePoll.objects.filter(reader_id=user_id, read=False).count()
