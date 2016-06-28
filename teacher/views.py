@@ -819,6 +819,7 @@ class AnnounceListView(ListView):
     template_name = 'teacher/announce_list.html'    
     paginate_by = 20
     def get_queryset(self):
+
         # 記錄系統事件
         if is_event_open() :    
             log = Log(user_id=self.request.user.id, event='查看班級公告')
@@ -829,7 +830,13 @@ class AnnounceListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(AnnounceListView, self).get_context_data(**kwargs)
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
-        return context	        
+        return context	    
+
+    # 限本班任課教師        
+    def render_to_response(self, context):
+        if not is_teacher(self.request.user, self.kwargs['classroom_id']):
+            return redirect('/')
+        return super(AnnounceListView, self).render_to_response(context)        
         
 #新增一個公告
 class AnnounceCreateView(CreateView):
@@ -858,7 +865,13 @@ class AnnounceCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super(AnnounceCreateView, self).get_context_data(**kwargs)
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
-        return context	        
+        return context	   
+        
+    # 限本班任課教師        
+    def render_to_response(self, context):
+        if not is_teacher(self.request.user, self.kwargs['classroom_id']):
+            return redirect('/')
+        return super(AnnounceCreateView, self).render_to_response(context)          
         
 # 查看藝郎某項目
 def announce_detail(request, message_id):

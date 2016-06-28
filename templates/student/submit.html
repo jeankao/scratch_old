@@ -6,7 +6,8 @@
             {% else %}
             尚未評分        
             <form action="" method="post">{% csrf_token %}
-            {{ form.as_p }}
+            作品編號：{{ form.number }}<a target=_blank href="/student/work_help"><img src="/static/images/help.png"></a><BR>
+            心得感想：{{form.memo}}<BR>
             <input type="submit" value="Submit" />
             </form>
             {% endif %}
@@ -14,7 +15,8 @@
             狀態：未繳交
             <br>
             <form action="" method="post">{% csrf_token %}
-            {{ form.as_p }}
+            作品編號：{{ form.number }}<a target=_blank href="/student/work_help"><img src="/static/images/help.png"></a><BR>
+            心得感想：{{form.memo}}<BR>
             <input type="submit" value="Submit" />
             </form>
         {% endif %}

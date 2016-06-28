@@ -742,3 +742,7 @@ class BugCreateView(CreateView):
             log = Log(user_id=self.request.user.id, event=u'張貼Bug<'+ classroom_name +'>')
             log.save() 					
         return redirect(url)
+
+# 說明作品編號
+def work_help(request):
+        return render_to_response('student/work_help.html', context_instance=RequestContext(request))
