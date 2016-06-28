@@ -403,7 +403,7 @@ def event_excel(request):
     response.write(xlsx_data)
     return response
 
-def make(request):
+def event_make(request):
     action = request.POST.get('action')
     if action :
             profile = Profile.objects.get(user=User.objects.get(id=1))
