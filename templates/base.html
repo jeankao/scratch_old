@@ -34,7 +34,7 @@ Licence URI: http://www.os-templates.com/template-terms
 		{% endif %}
 		{% if user.is_authenticated %}
 		<li><a href="/student/classroom">班級</a></li>			
-		<li><a href="/account">訊息({{request.user.id|unread}})</a></li>
+		<li><a href="/account">訊息{% if request.user.id|unread > 0 %}({{request.user.id|unread}}){% endif %}</a></li>
 		<li><a href="/account/profile/{{user.id}}">個人檔案</a></li>		
 			{% if user.id == 1 %}
 		<li><a href="/account/userlist">帳號管理</a></li>
