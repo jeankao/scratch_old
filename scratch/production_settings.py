@@ -20,3 +20,4 @@ ALLOWED_HOSTS = ['*']
 # Turn off DEBUG mode.
 DEBUG = False
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

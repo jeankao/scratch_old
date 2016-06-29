@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm
 from django.contrib.auth.models import User
-from account.models import Profile, PointHistory, Log, Message, MessagePoll
+from account.models import Profile, PointHistory, Log, Message, MessagePoll, Visitor, VisitorLog
 from student.models import Enroll, Work, Assistant
 from django.core.exceptions import ObjectDoesNotExist
 from account.templatetags import tag 
@@ -22,6 +22,8 @@ import xlsxwriter
 import datetime
 from django.utils import timezone
 from django.utils.timezone import localtime
+from datetime import datetime
+from django.utils import timezone
 
 # 判斷是否開啟事件記錄
 def is_event_open():
@@ -31,7 +33,9 @@ def is_event_open():
 # 網站首頁
 def homepage(request):
     users = User.objects.all()
-    return render_to_response('homepage.html', {'user_count':len(users)}, context_instance=RequestContext(request))
+    admin_user = User.objects.get(id=1)
+    admin_profile = Profile.objects.get(user=admin_user)
+    return render_to_response('homepage.html', {'user_count':len(users), 'admin_profile': admin_profile}, context_instance=RequestContext(request))
 
 # 使用者登入功能
 def user_login(request):
@@ -55,6 +59,26 @@ def user_login(request):
                                         if is_event_open() :
                                             log = Log(user_id=request.user.id, event='登入系統')
                                             log.save()
+                                        # 記錄訪客資訊
+                                        admin_user = User.objects.get(id=1)
+                                        profile = Profile.objects.get(user=admin_user)
+                                        profile.visitor_count = profile.visitor_count + 1
+                                        profile.save()
+                                        
+                                        year = timezone.now().year
+                                        month =  timezone.now().month
+                                        day =  timezone.now().day
+                                        date_number = year * 10000 + month*100 + day
+                                        try:
+                                            visitor = Visitor.objects.get(date=date_number)
+                                        except ObjectDoesNotExist:
+                                            visitor = Visitor(date=date_number)
+                                        visitor.count = visitor.count + 1
+                                        visitor.save()
+                                        
+                                        visitorlog = VisitorLog(visitor_id=visitor.id, user_id=user.id)
+                                        visitorlog.save()
+                                        
                                         return redirect('dashboard')
                                 else:
                                         message = "Your user is inactive"
@@ -508,4 +532,35 @@ def line_detail(request, message_id):
         pass
     return render_to_response('account/line_detail.html', {'message':message, 'messagepoll':messagepoll}, context_instance=RequestContext(request))
 
-                
+
+# 列出所有日期訪客
+class VisitorListView(ListView):
+    model = Visitor
+    context_object_name = 'visitors'
+    template_name = 'account/visitor_list.html'    
+    paginate_by = 20
+    
+    def get_queryset(self):
+        # 記錄系統事件
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='查看所有訪客')
+            log.save()        
+        queryset = Visitor.objects.all().order_by('-id')
+        return queryset
+        
+# 列出單日日期訪客
+class VisitorLogListView(ListView):
+    model = VisitorLog
+    context_object_name = 'visitorlogs'
+    template_name = 'account/visitorlog_list.html'    
+    paginate_by = 50
+    
+    def get_queryset(self):
+        # 記錄系統事件
+        visitor = Visitor.objects.get(id=self.kwargs['visitor_id'])
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='查看單日訪客<'+str(visitor.date)+'>')
+            log.save()        
+        queryset = VisitorLog.objects.filter(visitor_id=self.kwargs['visitor_id']).order_by('-id')
+        return queryset
+        

@@ -7,6 +7,7 @@ from student.models import Enroll
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from datetime import datetime
 
 register = template.Library()
 
@@ -73,3 +74,20 @@ def img(title):
         return "certificate"
     else :
         return ""
+
+@register.filter(name='week') 
+def week(date_number):
+    year = date_number / 10000
+    month = (date_number - year * 10000) / 100
+    day = date_number - year * 10000 - month * 100
+    now = datetime(year, month, day, 8, 0, 0)
+    return now.strftime("%A")
+    
+@register.filter(name='is_classmate') 
+def is_classmate(user_id, request):
+    enrolls = Enroll.objects.filter(student_id=request.user.id)
+    for enroll in enrolls:
+            members = Enroll.objects.filter(classroom_id=enroll.classroom_id, student_id=user_id)
+            if len(members) > 0: 
+                return True
+    return False

@@ -21,6 +21,10 @@ class Profile(models.Model):
 	avatar = models.IntegerField(default=0)
 	# 事件
 	event_open = models.BooleanField(default=False)
+	# 訪客人次
+	visitor_count = models.IntegerField(default=0)
+	# 開站時間
+	open_time = models.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
 		return str(self.user_id)
@@ -89,3 +93,14 @@ class MessagePoll(models.Model):
     def create(cls, message_id, reader_id):
         messagepoll = cls(message_id=message_id, reader_id=reader_id)
         return messagepoll
+        
+# 訪客 
+class Visitor(models.Model):
+    date = models.IntegerField(default=0)
+    count = models.IntegerField(default=0)
+    
+# 訪客記錄
+class VisitorLog(models.Model):
+    visitor_id = models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)
+    time = models.DateTimeField(auto_now_add=True)

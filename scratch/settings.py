@@ -134,4 +134,3 @@ if os.getenv('DATABASE_URL') is not None:
     import dj_database_url
     DATABASES['default'] = dj_database_url.config()
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
