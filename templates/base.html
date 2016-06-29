@@ -25,10 +25,9 @@ Licence URI: http://www.os-templates.com/template-terms
   <div id="topbar" class="clear"> 
     <!-- ################################################################################################ -->
     <div class="fl_left">
-
       <ul class="nospace linklist"> 
-		<li><img src="/static/images/icon_home.png"><a href="{% url 'homepage' %}">首頁</a></li>
-		<li><img src="/static/images/icon_scratch.png"><a href="https://scratch.mit.edu/" target="_blank">官網</a></li>	
+		<li><a href="{% url 'homepage' %}"><img width=16 src="/static/images/icon_home.png">首頁</a></li>
+		<li><a href="https://scratch.mit.edu/" target="_blank"><img width=16 src="/static/images/icon_scratch.png">官網</a></li>	
         <div class="dropdown">			
 		<li><img src="/static/images/icon_lesson.png">課程</li>
         <div class="dropdown-content">
@@ -38,15 +37,15 @@ Licence URI: http://www.os-templates.com/template-terms
             <a href="/student/lessons/4">實戰高手</a></a>            
         </div>
         </div>
-		<li><img src="/static/images/icon_gallery.png"><a href="/show/gallery">藝廊</a></li>		
+		<img  width=16 src="/static/images/icon_gallery.png"><li><a href="/show/gallery">藝廊</a></li>		
 		{% if not user.is_authenticated %}
-		<li><img src="/static/images/icon_book.png"><a href="http://www.books.com.tw/products/0010703424" target="_blank">參考書</a></li>
+		<img src="/static/images/icon_book.png"><li><a href="http://www.books.com.tw/products/0010703424" target="_blank">參考書</a></li>
 		{% endif %}
 		{% if user.is_authenticated %}
-		<li><img src="/static/images/icon_class.png"><a href="/student/classroom">班級</a></li>			
-		<li><img src="/static/images/icon_message.png"><a href="/account">訊息{% if request.user.id|unread > 0 %}({{request.user.id|unread}}){% endif %}</a></li>
+		<li><a href="/student/classroom"><img  width=16 src="/static/images/icon_class.png">班級</a></li>			
+		<li><a href="/account"><img  width=16 src="/static/images/icon_message.png">訊息{% if request.user.id|unread > 0 %}({{request.user.id|unread}}){% endif %}</a></li>
         <div class="dropdown">	
-		<li><img src="/static/images/icon_doc.png">個人檔案</li>		
+	    <li><img  width=16 src="/static/images/icon_doc.png">個人檔案</li>		
         <div class="dropdown-content">
             <a href="/account/profile/{{user.id}}#tab1">積分</a>
             <a href="/account/profile/{{user.id}}#tab2">作業</a>
@@ -54,15 +53,15 @@ Licence URI: http://www.os-templates.com/template-terms
         </div>
         </div>
 			{% if user.id == 1 %}
-		<li><a href="/account/userlist">帳號管理</a></li>
+		<li><a href="/account/userlist"><img  width=16 src="/static/images/icon_admin.png">帳號管理</a></li>
             {% if not request.user|has_group:"teacher" %}
-		<li><a href="/account/event/0">事件</a></a></li>            
+		<li><a href="/account/event/0"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>            
             {% endif %}
 			{% endif %}				        
 
             {% if request.user|has_group:"teacher" %} 	
-		<li><img src="/static/images/icon_teacher.png"><a href="/teacher/classroom">教師管理</a></li>
-		<li><img src="/static/images/icon_event.png"><a href="/account/event/0">事件</a></a></li>		
+		<li><a href="/teacher/classroom"><img  width=16 src="/static/images/icon_teacher.png">教師管理</a></li>
+		<li><a href="/account/event/0"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>		
 			{% endif %}		
 	    {% endif %}
       </ul>
@@ -179,7 +178,9 @@ Licence URI: http://www.os-templates.com/template-terms
     {% endblock %}
   });
   {% block userscript %}
+  
   {% endblock %}
 </script>  
+</div>
 </body>
 </html>

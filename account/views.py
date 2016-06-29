@@ -60,8 +60,9 @@ def user_login(request):
                                         message = "Your user is inactive"
                         else:
                             # 記錄系統事件
-                            log = Log(user_id=0, event='登入失敗')
-                            log.save()                                
+                            if is_event_open() :                            
+                                log = Log(user_id=0, event='登入失敗')
+                                log.save()                                
                             message = "無效的帳號或密碼!"
         else:
                 form = LoginForm()
