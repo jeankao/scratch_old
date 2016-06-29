@@ -28,7 +28,7 @@ function MM_swapImage() { //v3.0
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
 {% block content %}
-
+{% if unit == "1" %}
 		<table>
 		<tr>
 		<td>
@@ -73,9 +73,7 @@ function MM_swapImage() { //v3.0
 		</td>		
 		</tr>
 	  	</table>
-<br>
-<hr>
-<BR>
+{% elif unit == "2" %}
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -117,9 +115,7 @@ function MM_swapImage() { //v3.0
 		</tr>
 		
 		</table>
-<br>
-<hr>
-<BR>
+{% elif unit == "3" %}
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -159,9 +155,7 @@ function MM_swapImage() { //v3.0
 		</tr>
 		
 		</table>
-<br>
-<hr>
-<BR>
+{% elif unit == "4" %}
 		<table>
 		<tr>
 			<td rowspan=10>
@@ -200,5 +194,5 @@ function MM_swapImage() { //v3.0
 		</tr>
 		
 		</table>
-
+{% endif %}
 {% endblock %}

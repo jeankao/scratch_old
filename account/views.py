@@ -110,6 +110,16 @@ def register(request):
             if is_event_open() :   
                 log = Log(user_id=new_user.id, event='註冊帳號成功')
                 log.save()                
+        
+            # create Message
+            title = "請洽詢任課教師課程名稱及選課密碼"
+            url = "/student/classroom/add"
+            message = Message.create(title=title, url=url, time=timezone.now())
+            message.save()                        
+                    
+            # message for group member
+            messagepoll = MessagePoll.create(message_id = message.id,reader_id=new_user.id)
+            messagepoll.save()               
             return render(request,
                           'account/register_done.html',
                           {'new_user': new_user})

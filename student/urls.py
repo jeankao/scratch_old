@@ -28,7 +28,7 @@ urlpatterns = [
    
     # 課程  
     url(r'^lesson/(?P<lesson>[^/]+)/$', views.lesson),    
-    url(r'^lessons/$', views.lessons),   
+    url(r'^lessons/(?P<unit>[^/]+)/$', views.lessons),   
     url(r'^lesson/log/(?P<lesson>[^/]+)/$', views.lesson_log),    
     #查詢該作業分組小老師
     url(r'^group/work/(?P<lesson>[^/]+)/(?P<classroom_id>[^/]+)$', views.work_group),  

@@ -186,7 +186,7 @@ def classroom_enroll(request, classroom_id):
                         pass
                     
                     
-                    return redirect('/student/classroom')
+                    return redirect("/student/group/" + str(classroom.id))
         else:
             form = EnrollForm()
         return render_to_response('student/classroom_enroll.html', {'form':form}, context_instance=RequestContext(request))
@@ -211,7 +211,7 @@ def seat_edit(request, enroll_id, classroom_id):
     return render_to_response('form.html',{'form': form}, context_instance=RequestContext(request))  
 
 # 四種課程    
-def lessons(request):
+def lessons(request, unit):
         enrolls = Enroll.objects.filter(student_id=request.user.id)
         if request.user.is_authenticated():
             user_id = request.user.id
@@ -221,7 +221,7 @@ def lessons(request):
         if is_event_open() :          
             log = Log(user_id=user_id, event='查看課程頁面')             
             log.save()         
-        return render_to_response('student/lessons.html', {'lesson':lesson, 'enrolls':enrolls}, context_instance=RequestContext(request))
+        return render_to_response('student/lessons.html', {'unit': unit}, context_instance=RequestContext(request))
 
 # 課程內容
 def lesson(request, lesson):
@@ -611,16 +611,16 @@ def debug_value(request, bug_id):
                 url = "/student/bug/"+str(bug_id)
                 if debug_value_form.cleaned_data['reward'] == "0":
                     reward = "沒有解決"
-                    msg =u'0分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                    msg =u'0分<'+  request.user.first_name.encode('utf-8')+u'>評價您的除錯<'+reward.encode('utf-8')+'>'
                 elif debug_value_form.cleaned_data['reward'] == "1":
                     reward = "部份解決"
-                    msg =u'1分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                    msg =u'1分<'+  request.user.first_name.encode('utf-8')+u'>評價您的除錯<'+reward.encode('utf-8')+'>'
                 elif debug_value_form.cleaned_data['reward'] == "2":
                     reward = "大概解決"
-                    msg =u'2分--'+  request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                    msg =u'2分<'+  request.user.first_name.encode('utf-8')+u'>評價您的除錯<'+reward.encode('utf-8')+'>'
                 elif debug_value_form.cleaned_data['reward'] == "3":
                     reward = "完全解決"						
-                    msg =u'3分--'+ request.user.first_name.encode('utf-8')+u'評價您的除錯<'+reward.encode('utf-8')+'>'
+                    msg =u'3分<'+ request.user.first_name.encode('utf-8')+u'>評價您的除錯<'+reward.encode('utf-8')+'>'
 
 
 				# credit
@@ -668,7 +668,7 @@ def bug_detail(request, bug_id):
             new_debug.save()
             
             # create Message
-            title = request.user.first_name + u"--幫您除錯了<"+ bug.title + ">"
+            title = "<" + request.user.first_name + u">幫您除錯了<"+ bug.title + ">"
             url = request.get_full_path()
             message = Message.create(title=title, url=url, time=timezone.localtime(timezone.now()))
             message.save()

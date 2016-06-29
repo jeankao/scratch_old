@@ -69,5 +69,7 @@ def img(title):
         return "assistant"
     elif u'設您為教師' in title:
         return "teacher"
+    elif u'核發了一張證書給你' in title:
+        return "certificate"
     else :
         return ""
