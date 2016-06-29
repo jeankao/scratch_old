@@ -8,6 +8,7 @@
   </p>
   <iframe allowtransparency="true" width="485" height="402" src="http://scratch.mit.edu/projects/embed/{{ bug.number  }}/?autostart=false" frameborder=“0” allowfullscreen></iframe>
   <BR></BR>
+  <hr>
 
 {% with debugs.count as total_debug %}
   <h2>
@@ -18,10 +19,9 @@
     <p class="info">
     {{ debug.0.publish}} by debugger {{ debug.0.author.first_name }}
     作品：<a target=_blank href="https://scratch.mit.edu/projects/{{debug.number}}/#editor">{{debug.0.number}}</a>
-    </p>
+    <br>
     {{ debug.0.body|linebreaks }}
-  <BR>
-	<iframe allowtransparency="true" width="485" height="402" src="http://scratch.mit.edu/projects/embed/{{ debug.0.number  }}/?autostart=false" frameborder=“0” allowfullscreen></iframe>
+    
   <BR>
   {% if debug.0.reward > 0 %}
   評價時間：{{debug.0.reward_date}}
@@ -41,6 +41,9 @@
     <p><input type="submit" value="評價"></p>
   </form>  
   {% endif %}
+  </p>
+	<iframe allowtransparency="true" width="485" height="402" src="http://scratch.mit.edu/projects/embed/{{ debug.0.number  }}/?autostart=false" frameborder=“0” allowfullscreen></iframe>
+  <hr>
   </div>
 {% empty %}
   <p>目前沒有人幫忙除錯</p>

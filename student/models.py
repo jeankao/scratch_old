@@ -82,6 +82,9 @@ class Assistant(models.Model):
     @property        
     def student(self):
         return User.objects.get(id=self.student_id)         
+
+    class Meta:
+        unique_together = ('student_id', 'classroom_id', 'lesson', )		        
 	
 # 測驗卷
 class Exam(models.Model):

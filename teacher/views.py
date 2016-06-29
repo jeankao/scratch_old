@@ -156,7 +156,7 @@ def scoring(request, classroom_id, user_id, index):
     user = User.objects.get(id=user_id)
     enroll = Enroll.objects.get(classroom_id=classroom_id, student_id=user_id)
     try:
-        assistant = Assistant.objects.get(classroom_id=classroom_id,lesson=index,student_id=request.user.id)
+        assistant = Assistant.objects.filter(classroom_id=classroom_id,lesson=index,student_id=request.user.id)
     except ObjectDoesNotExist:            
         if not is_teacher(request.user, classroom_id):
             return render_to_response('message.html', {'message':"您沒有權限"}, context_instance=RequestContext(request))
@@ -209,7 +209,7 @@ def scoring(request, classroom_id, user_id, index):
                         assistant.save()	
                         
                     # create Message
-                    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + "><img src='/static/images/assistant.png'>"
+                    title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(index)-1][2] + ">"
                     url = "/teacher/score_peer/" + str(index) + "/" + classroom_id + "/" + str(enroll.group) 
                     message = Message.create(title=title, url=url, time=timezone.now())
                     message.save()                        
@@ -276,13 +276,13 @@ def assistant(request, classroom_id, user_id, lesson):
         log = Log(user_id=request.user.id, event=u'設為小老師<'.encode("utf-8")+user.first_name.encode("utf-8")+'><'+ lesson_list[int(lesson)-1][2] + ">")
         log.save()    
     
+    group = Enroll.objects.get(classroom_id=classroom_id, student_id=assistant.student_id).group
     # create Message
     title = "<" + assistant.student.first_name.encode("utf-8") + u">擔任小老師<".encode("utf-8") + lesson_list[int(lesson)-1][2] + ">"
-    url = "/student/group/work/" + str(lesson) + "/" + classroom_id 
+    url = "/teacher/score_peer/" + str(lesson) + "/" + classroom_id + "/" + str(group) 
     message = Message.create(title=title, url=url, time=timezone.now())
     message.save()                        
         
-    group = Enroll.objects.get(classroom_id=classroom_id, student_id=assistant.student_id).group
     if group > 0 :
         enrolls = Enroll.objects.filter(group = group)
         for enroll in enrolls:

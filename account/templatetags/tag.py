@@ -58,3 +58,16 @@ def has_group(user, group_name):
 @register.filter(name='unread') 
 def unread(user_id):
     return MessagePoll.objects.filter(reader_id=user_id, read=False).count()
+    
+@register.filter(name="img")
+def img(title):
+    if title.startswith(u'[私訊]'):
+        return "line"
+    elif title.startswith(u'[公告]'):
+        return "announce"
+    elif u'擔任小老師' in title:
+        return "assistant"
+    elif u'設您為教師' in title:
+        return "teacher"
+    else :
+        return ""

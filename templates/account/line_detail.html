@@ -3,7 +3,7 @@
 {% load tag %}
 {% block content %}
         <h1>私訊來源：<a href="/account/profile/{{message.author_id}}">{{message.author_id|name}}</a></h1>
-        <h1>私訊對象：{{messagepoll.reader_id|name}}</h1>
+        <h1>私訊對象：{{messagepoll.reader_id|name}}{% if messagepoll.read %}(已讀){% else %}(未讀){% endif %}</h1>
         <table>
             <tr>
                 <td>時間</td><td>{{message.time}}</td>

@@ -34,7 +34,7 @@
             <td>{{enroll.student.first_name}}</td>
             <td>{{group_name}}</td>
             <td>{{enroll.student.last_login}}</td>
-            <td><a href="/account/line/add/{{enroll.student_id}}">發出私訊</a></td>
+            <td><a href="/account/line/add/{{enroll.classroom_id}}/{{enroll.student_id}}">發出私訊</a></td>
 			{% for group in user.groups.all %}
 			{% if group.name == 'teacher' %}              
             <td><a href="/account/event/{{enroll.student.id}}">事件</a></td>

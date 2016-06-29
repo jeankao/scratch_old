@@ -289,7 +289,7 @@ def make(request):
                 log.save()                        
             group.user_set.add(user)
             # create Message
-            title = "<" + request.user.first_name + u">設您為教師<img src='/static/images/teacher.png'>"
+            title = "<" + request.user.first_name + u">設您為教師"
             url = "/teacher/classroom"
             message = Message.create(title=title, url=url, time=timezone.now())
             message.save()                        
@@ -455,7 +455,7 @@ class LineListView(ListView):
         if is_event_open() :    
             log = Log(user_id=self.request.user.id, event='查看所有私訊')
             log.save()        
-        queryset = Message.objects.filter(author_id=self.request.user.id, classroom_id=0).order_by("-id")
+        queryset = Message.objects.filter(author_id=self.request.user.id, classroom_id=0-int(self.kwargs['classroom_id'])).order_by("-id")
         return queryset
         
         
@@ -471,6 +471,7 @@ class LineCreateView(CreateView):
         self.object.author_id = self.request.user.id
         self.object.save()
         self.object.url = "/account/line/detail/" + str(self.object.id)
+        self.object.classroom_id = 0 - int(self.kwargs['classroom_id'])
         self.object.save()
         # 訊息
         messagepoll = MessagePoll(message_id=self.object.id, reader_id=self.kwargs['user_id'])
@@ -479,11 +480,12 @@ class LineCreateView(CreateView):
         if is_event_open() :            
             log = Log(user_id=self.request.user.id, event=u'新增私訊<'+self.object.title+'>')
             log.save()                
-        return redirect("/account/line/")       
+        return redirect("/account/line/"+self.kwargs['classroom_id'])       
         
     def get_context_data(self, **kwargs):
         context = super(LineCreateView, self).get_context_data(**kwargs)
         context['user_id'] = self.kwargs['user_id']
+        context['classroom_id'] = self.kwargs['classroom_id']
         return context	 
         
 # 查看私訊內容
