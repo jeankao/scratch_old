@@ -2,13 +2,13 @@
 {% block title %} Students {% endblock %}
 {% block content %}
 {% if group_open %}
-<a href="../add/{{classroom_id}}">新增組別</a>
+<a href="../add/{{classroom_id}}"><img src="/static/images/icon_group_new.png">新增組別</a>
 {% endif %}
 {% if teacher %}
 {% if group_open %}
-<a href="../open/{{classroom_id}}/0">關閉選組</a>
+<a href="../open/{{classroom_id}}/0"><img src="/static/images/icon_close.png">關閉選組</a>
 {% else %}
-<a href="../open/{{classroom_id}}/1">開放選組</a>
+<a href="../open/{{classroom_id}}/1"><img src="/static/images/icon_open.png">開放選組</a>
 {% endif %}
 {% endif %}
 

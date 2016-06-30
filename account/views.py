@@ -53,6 +53,15 @@ def user_login(request):
                                             if user.first_name == "": 
                                                 user.first_name = "管理員"
                                                 user.save()
+                                                # create Message
+                                                title = "請修改您的姓名"
+                                                url = "/account/realname"
+                                                message = Message.create(title=title, url=url, time=timezone.now())
+                                                message.save()                        
+                    
+                                                # message for group member
+                                                messagepoll = MessagePoll.create(message_id = message.id,reader_id=1)
+                                                messagepoll.save()                                                             
                                         # 登入成功，導到大廳
                                         login(request, user)
                                         # 記錄系統事件

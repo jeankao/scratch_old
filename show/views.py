@@ -534,6 +534,7 @@ def excel(request, classroom_id):
             worksheet.write(index,4, review[0].comment)  
             worksheet.write(index,5, str(localtime(review[0].publish)))             
             index = index + 1
+        worksheet.insert_image(index+1,0, 'static/show/'+str(show.id)+'/Dr-Scratch.png')
     workbook.close()
     # xlsx_data contains the Excel file
     response = HttpResponse(content_type='application/vnd.ms-excel')
