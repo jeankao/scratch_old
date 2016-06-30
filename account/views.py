@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm
+from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm, EmailForm
 from django.contrib.auth.models import User
 from account.models import Profile, PointHistory, Log, Message, MessagePoll, Visitor, VisitorLog
 from student.models import Enroll, Work, Assistant
@@ -76,7 +76,7 @@ def user_login(request):
                                         visitor.count = visitor.count + 1
                                         visitor.save()
                                         
-                                        visitorlog = VisitorLog(visitor_id=visitor.id, user_id=user.id)
+                                        visitorlog = VisitorLog(visitor_id=visitor.id, user_id=user.id, IP=request.META.get('REMOTE_ADDR'))
                                         visitorlog.save()
                                         
                                         return redirect('dashboard')
@@ -259,6 +259,25 @@ def adminschool(request, user_id):
         form = SchoolForm(instance=user)
 
     return render_to_response('account/school.html',{'form': form}, context_instance=RequestContext(request))
+    
+# 修改信箱
+def adminemail(request, user_id):
+    if request.method == 'POST':
+        form = EmailForm(request.POST)
+        if form.is_valid():
+            user = User.objects.get(id=user_id)
+            user.email =form.cleaned_data['email']
+            user.save()
+            # 記錄系統事件
+            if is_event_open() :               
+                log = Log(user_id=request.user.id, event=u'修改信箱<'+user.first_name+'>')
+                log.save()                
+            return redirect('/account/profile/'+str(request.user.id))
+    else:
+        user = User.objects.get(id=request.user.id)
+        form = EmailForm(instance=user)
+
+    return render_to_response('account/email.html',{'form': form}, context_instance=RequestContext(request))    
 
 # 記錄積分項目
 class LogListView(ListView):
@@ -563,4 +582,9 @@ class VisitorLogListView(ListView):
             log.save()        
         queryset = VisitorLog.objects.filter(visitor_id=self.kwargs['visitor_id']).order_by('-id')
         return queryset
+        
+    def render_to_response(self, context):
+        if not self.request.user.is_authenticated():
+            return redirect('/')
+        return super(VisitorLogListView, self).render_to_response(context)
         

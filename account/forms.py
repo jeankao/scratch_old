@@ -91,6 +91,17 @@ class SchoolForm(forms.ModelForm):
         super(SchoolForm, self).__init__(*args, **kwargs)
         self.fields['last_name'].label = "學校名稱"        
 
+# 修改信箱表單       
+class EmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email']
+            
+    def __init__(self, *args, **kwargs):
+        super(EmailForm, self).__init__(*args, **kwargs)
+        self.fields['email'].label = "電子郵件"        
+        self.fields['email'].widget.attrs['size'] = 50
+
 # 查詢事件
 class EventForm(forms.ModelForm):
     class Meta:

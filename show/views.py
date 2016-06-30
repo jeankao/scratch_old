@@ -18,11 +18,16 @@ from account.avatar import *
 from django.core.exceptions import ObjectDoesNotExist
 from collections import OrderedDict
 from django.http import JsonResponse
+from django.http import HttpResponse
 import math
 import cStringIO as StringIO
 from PIL import Image,ImageDraw,ImageFont
 from binascii import a2b_base64
 import os
+import StringIO
+import xlsxwriter
+from datetime import datetime
+from django.utils.timezone import localtime
 
 def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
@@ -461,3 +466,78 @@ def upload_pic(request, show_id):
             pass
         form = ImageUploadForm()
     return render_to_response('show/drscratch.html', {'form':form, 'show': m}, context_instance=RequestContext(request))
+
+def excel(request, classroom_id):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=request.user.id, event=u'下載創意秀到Excel')
+        log.save()        
+
+    output = StringIO.StringIO()
+    workbook = xlsxwriter.Workbook(output)    
+            
+    shows = ShowGroup.objects.filter(classroom_id=classroom_id)
+    for show in shows :
+        worksheet = workbook.add_worksheet(show.name)
+        worksheet.write(0,0, u"組員")
+        number = 1
+        members = Enroll.objects.filter(group_show=show.id)
+        for member in members:
+            worksheet.write(0, number, "("+str(member.seat)+")"+member.student.first_name)
+            number = number + 1
+        worksheet.write(1,0, u"作品名稱") 
+        worksheet.write(1,1, show.name)
+        worksheet.write(2,0, u"上傳時間") 
+        worksheet.write(2,1, str(localtime(show.publish)))        
+        worksheet.write(3,0, u"作品位置")
+        worksheet.write(3,1, "https://scratch.mit.edu/projects/"+str(show.number))
+
+        worksheet.write(4,0, u"評分者")
+        worksheet.write(4,1, u"美工設計")
+        worksheet.write(4,2, u"程式難度")
+        worksheet.write(4,3, u"創意表現")
+        worksheet.write(4,4, u"評語")
+        worksheet.write(4,5, u"時間")
+        showreviews = ShowReview.objects.filter(show_id=show.id)        
+        score1 = showreviews.aggregate(Sum('score1')).values()[0]
+        score2 = showreviews.aggregate(Sum('score2')).values()[0]
+        score3 = showreviews.aggregate(Sum('score3')).values()[0]
+        if showreviews.count() > 0 :
+            score1 = score1 / showreviews.count()     
+            score2 = score2 / showreviews.count()  
+            score3 = score3 / showreviews.count()          
+            scores = [math.ceil(score1*10)/10, math.ceil(score2*10)/10, math.ceil(score3*10)/10,  showreviews.count()]
+        else :
+            scores = [0,0,0,0]
+        
+        worksheet.write(5,0, u"平均("+str(scores[3])+u"人)")
+        worksheet.write(5,1, scores[0])
+        worksheet.write(5,2, scores[1])
+        worksheet.write(5,3, scores[2])        
+
+        index = 6
+        
+        reviews = []
+        for showreview in showreviews:
+            enroll = Enroll.objects.get(classroom_id=classroom_id, student_id=showreview.student_id)
+            reviews.append([showreview, enroll])
+        
+        def getKey(custom):
+            return custom[1].seat
+	
+        reviews = sorted(reviews, key=getKey)        
+        for review in reviews:
+            worksheet.write(index,0, "("+str(review[1].seat)+")"+review[1].student.first_name)
+            worksheet.write(index,1, review[0].score1)
+            worksheet.write(index,2, review[0].score2)
+            worksheet.write(index,3, review[0].score3)            
+            worksheet.write(index,4, review[0].comment)  
+            worksheet.write(index,5, str(localtime(review[0].publish)))             
+            index = index + 1
+    workbook.close()
+    # xlsx_data contains the Excel file
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=Show'+str(datetime.now().date())+'.xlsx'
+    xlsx_data = output.getvalue()
+    response.write(xlsx_data)
+    return response

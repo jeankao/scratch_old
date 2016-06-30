@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^gallery/make/$', views.make, name='make'),   	
     url(r'^gallery/(?P<show_id>[^/]+)/$', views.GalleryDetail),  
     url(r'^drscratch/(?P<show_id>[^/]+)/$', views.upload_pic),       
+    url(r'^excel/(?P<classroom_id>[^/]+)/$', views.excel),
 ]

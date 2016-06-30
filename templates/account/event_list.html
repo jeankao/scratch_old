@@ -2,9 +2,9 @@
 {% block title %} Teachers {% endblock %}
 {% block content %}
 {% load tag %}
-        {% if is_event_open %}<a href="#" data-action="close" class="event">關閉事件記錄</a>{% else %}<a href="#" data-action="open" class="event">開啟事件記錄</a>{% endif %}|
-        <a href="/account/event/clear" onclick="return confirm('確定要清除嗎?')">清除所有事件</a>|
-        <a href="/account/event/excel">下載所有事件到Excel</a>
+        {% if is_event_open %}<a href="#" data-action="close" class="event"><img src="/static/images/icon_close.png"關閉事件記錄</a>{% else %}<a href="#" data-action="open" class="event"><img src="/static/images/icon_open.png">開啟事件記錄</a>{% endif %}|
+        <a href="/account/event/clear" onclick="return confirm('確定要清除嗎?')"><img src="/static/images/icon_clear.png">清除所有事件</a>|
+        <a href="/account/event/excel"><img src="/static/images/icon_excel.png">下載所有事件到Excel</a>
 <BR>
 搜尋記錄：
     <form action="."  method="get">

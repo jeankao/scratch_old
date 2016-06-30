@@ -40,15 +40,25 @@ article {
 <script>
 
 $(function () {
-    $('ul.tabs li:first').addClass('active');
     $('.block article').hide();
-    $('.block article:first').show();
+    var defaultTab = $('ul.tabs li:first');
+    var defaultArticle = $('.block article:first');
+    if (location.hash && $(location.hash)) {
+        $('ul.tabs li a').each(function(index, element){
+            if($(element).attr('href') === location.hash) {
+                defaultTab = $(element).parent();
+                defaultArticle = $(location.hash);
+            }
+        });
+    }
+    $(defaultTab).addClass('active');
+    $(defaultArticle).show();
     $('ul.tabs li').on('click', function () {
         $('ul.tabs li').removeClass('active');
         $(this).addClass('active');
         $('.block article').hide();
-        var activeTab = $(this).find('a');
-        $(activeTab.attr('href')).show();
+        var activeTab = $(this).find('a').attr('href');
+        $(activeTab).show();
         return false;
     });
 });
@@ -57,12 +67,14 @@ $(function () {
 {% endblock %}
 {% block content %}
 {% load tag %}
+
 {% if user.id == user_id|to_int %}
-<a href="/account/password-change">修改密碼</a>　<a href="/account/realname">修改姓名</a>　<a href="/account/school/{{request.user.id}}">修改學校</a><BR><BR>
+<a href="/account/password-change">修改密碼</a>　<a href="/account/realname">修改姓名</a>　<a href="/account/school/{{request.user.id}}">修改學校</a>　<a href="/account/email/{{request.user.id}}">修改信箱</a><BR><BR>
 {% endif %}
   
 <section class="wrapper">
   <h1>{{profile.user.first_name}}個人檔案</h1>
+<p>信箱：{{user.email}}</p>
 <p>學校：{{user.last_name}}</p>
 <p>
 班級：
@@ -122,22 +134,27 @@ $(function () {
         <BR>
         {% for enroll in enrolls %}
         {% if enroll.certificate1 %}
-        <img src='/static/certificate/1/{{enroll.id}}.jpg'><hr>
+        <img src='/static/certificate/1/{{enroll.id}}.jpg'>
+        <Br><hr>
         {% endif %}
-        <Br>
+
         {% if enroll.certificate2 %}
-        <img src='/static/certificate/2/{{enroll.id}}.jpg'><hr>
+        <img src='/static/certificate/2/{{enroll.id}}.jpg'>
+        <Br><hr>
         {% endif %}
-        <Br>
+
         {% if enroll.certificate3 %}
-        <img src='/static/certificate/3/{{enroll.id}}.jpg'><hr>
+        <img src='/static/certificate/3/{{enroll.id}}.jpg'>
+        <Br><hr>
         {% endif %}
-        <Br>
+
         {% if enroll.certificate4 %}
-        <img src='/static/certificate/4/{{enroll.id}}.jpg'><hr>
+        <img src='/static/certificate/4/{{enroll.id}}.jpg'>
+        <Br><hr>
         {% endif %}
-        <Br>        
+
         {% endfor %}    
+        </article>
     </article>
   </section>
 </section>

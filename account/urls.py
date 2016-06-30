@@ -26,6 +26,8 @@ urlpatterns = [
     url(r'^realname/$', views.realname, name='realname'), 
     #修改學校
     url(r'^school/(?P<user_id>\d+)/$', views.adminschool),     
+    #修改信箱
+    url(r'^email/(?P<user_id>\d+)/$', views.adminemail),    
     #積分記錄
     url(r'^log/(?P<kind>\d+)/(?P<user_id>\d+)/$', views.LogListView.as_view()),	    
     #設定教師

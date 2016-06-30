@@ -9,7 +9,7 @@
             </tr>
         {% for visitor in visitors %}
             <tr>
-            <td><a href="/account/visitorlog/{{visitor.id}}">{{visitor.date}}--{{visitor.date|week}}</a></td>
+            <td>{% if user.is_authenticated %}<a href="/account/visitorlog/{{visitor.id}}">{% endif %}{{visitor.date}}--{{visitor.date|week}}{% if not user.is_authenticated %}</a>{% endif %}</td>
             <td>{{visitor.count}}</td>
             </tr>
         {% endfor %}
