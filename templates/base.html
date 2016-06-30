@@ -29,17 +29,27 @@ Licence URI: http://www.os-templates.com/template-terms
 		<li><a href="{% url 'homepage' %}"><img width=16 src="/static/images/icon_home.png">首頁</a></li>
 		<li><a href="https://scratch.mit.edu/" target="_blank"><img width=16 src="/static/images/icon_scratch.png">官網</a></li>	
         <div class="dropdown">			
-		<li><img src="/static/images/icon_lesson.png">課程</li>
+		<li><img src="/static/images/icon_lesson.png" width=16>課程</li>
         <div class="dropdown-content">
             <a href="/student/lessons/1">基礎12堂課</a>
-            <a href="/student/lessons/2">實戰入門</a></a>
-            <a href="/student/lessons/3">實戰進擊</a></a>
-            <a href="/student/lessons/4">實戰高手</a></a>            
+            <a href="/student/lessons/2">實戰入門</a>
+            <a href="/student/lessons/3">實戰進擊</a>
+            <a href="/student/lessons/4">實戰高手</a>          
         </div>
         </div>
-		<img  width=16 src="/static/images/icon_gallery.png"><li><a href="/show/gallery">藝廊</a></li>		
+		<li><a href="/show/gallery"><img  width=16 src="/static/images/icon_gallery.png">藝廊</a></li>		
 		{% if not user.is_authenticated %}
-		<img src="/static/images/icon_book.png"><li><a href="http://www.books.com.tw/products/0010703424" target="_blank">參考書</a></li>
+		<li><a href="http://www.books.com.tw/products/0010703424" target="_blank"></a><img src="/static/images/icon_book.png" width=16>參考書</a></li>
+        <div class="dropdown">			
+		<li><img src="/static/images/icon_manual.png" width=16>使用手冊</li>
+		<div class="dropdown-content">
+            <a href="/account/manual/student">學生版手冊</a>
+            <a href="/account/manual/teacher">教師版手冊</a></a>
+            <a href="/account/manual/ubuntu">Ubuntu架站</a>
+            <a href="/account/manual/windows">Windows架站</a>
+            <a href="/account/manual/heroku">Heroku架站</a>            
+        </div>
+        </div>
 		{% endif %}
 		{% if user.is_authenticated %}
 		<li><a href="/student/classroom"><img  width=16 src="/static/images/icon_class.png">班級</a></li>			
@@ -64,7 +74,7 @@ Licence URI: http://www.os-templates.com/template-terms
 		<li><a href="/account/event/0"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>		
 			{% endif %}		
 	    {% endif %}
-		<img src="/static/images/icon_visitor.png"><li><a href="/account/visitor">訪客</a></li>	    
+		<li><a href="/account/visitor"><img src="/static/images/icon_visitor.png">訪客</a></li>	    
       </ul>
     </div>
     <div class="fl_right">

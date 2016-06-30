@@ -597,3 +597,42 @@ class VisitorLogListView(ListView):
             return redirect('/')
         return super(VisitorLogListView, self).render_to_response(context)
         
+# 顯示學生手冊
+def manual_student(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看學生手冊')
+        log.save()        
+    return render_to_response('account/manual_student.html',  context_instance=RequestContext(request))	
+
+# 顯示教師手冊
+def manual_teacher(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看教師手冊')
+        log.save()        
+    return render_to_response('account/manual_teacher.html',  context_instance=RequestContext(request))	
+
+# 顯示Windows架站
+def manual_windows(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看Windows架站')
+        log.save()        
+    return render_to_response('account/manual_windows.html',  context_instance=RequestContext(request))	
+
+# 顯示Ubuntu架站
+def manual_ubuntu(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看ubuntu架站')
+        log.save()        
+    return render_to_response('account/manual_ubuntu.html',  context_instance=RequestContext(request))	
+
+# 顯示Heroku架站
+def manual_heroku(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看Heroku架站')
+        log.save()        
+    return render_to_response('account/manual_heroku.html',  context_instance=RequestContext(request))	
