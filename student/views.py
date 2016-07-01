@@ -74,7 +74,7 @@ def group(request, classroom_id):
 
         # 記錄系統事件
         if is_event_open() :          
-            log = Log(user_id=request.user.id, event=u'查看分組<'+classroom_name+'>')
+            log = Log(user_id=request.user.id, event=u'查看分組<'+classroom.name+'>')
             log.save()        
         return render_to_response('student/group.html', {'nogroup': nogroup, 'group_open': group_open, 'student_groups':student_groups, 'classroom':classroom, 'student_group':student_group, 'teacher': is_teacher(request.user, classroom_id)}, context_instance=RequestContext(request))
 
@@ -108,7 +108,7 @@ def group_size(request, classroom_id):
                 
                 # 記錄系統事
                 if is_event_open() :                  
-                    log = Log(user_id=request.user.id, event=u'設定組別人數<'+classroom.name+'><'+form.cleaned_data['group_size']+'>')
+                    log = Log(user_id=request.user.id, event=u'設定組別人數<'+classroom.name+'><'+str(form.cleaned_data['group_size'])+'>')
                     log.save()        
         
                 return redirect('/student/group/'+classroom_id)

@@ -62,7 +62,7 @@ def group(request, classroom_id):
             
         # 記錄系統事件
         if is_event_open() :         
-            log = Log(user_id=request.user.id, event=u'查看創意秀組別<'+classroom_name+'>')
+            log = Log(user_id=request.user.id, event=u'查看創意秀組別<'+classroom.name+'>')
             log.save()              
         return render_to_response('show/group.html', {'nogroup': nogroup, 'group_show_open':group_show_open, 'teacher':is_teacher(request.user, classroom_id), 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
 
@@ -99,7 +99,7 @@ def group_size(request, classroom_id):
                 
                 # 記錄系統事
                 if is_event_open() :                  
-                    log = Log(user_id=request.user.id, event=u'設定創意秀組別人數<'+classroom.name+'><'+form.cleaned_data['group_show_size']+'>')
+                    log = Log(user_id=request.user.id, event=u'設定創意秀組別人數<'+classroom.name+'><'+str(form.cleaned_data['group_show_size'])+'>')
                     log.save()        
         
                 return redirect('/show/group/'+classroom_id)

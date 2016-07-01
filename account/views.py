@@ -602,8 +602,12 @@ class VisitorListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        if is_event_open() :    
-            log = Log(user_id=self.request.user.id, event='查看所有訪客')
+        if is_event_open() :
+            if not self.request.user.is_authenticated():
+                user_id = 0
+            else :
+                user_id = self.request.user.id
+            log = Log(user_id=user_id, event='查看所有訪客')
             log.save()        
         queryset = Visitor.objects.all().order_by('-id')
         return queryset
