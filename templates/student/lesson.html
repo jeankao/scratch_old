@@ -119,7 +119,6 @@ function secToTime(sec) {
 function onPlayerStateChange(event) {
     activePlayer = event.target;
     currTime = secToTime(activePlayer.getCurrentTime().toFixed());
-    alert(activePlayer.tabName)
     switch(event.data) {
         case YT.PlayerState.ENDED:
             lesson_log(activePlayer.tabName+" | STOP["+currTime+"]"); break;

@@ -101,6 +101,7 @@ class Visitor(models.Model):
     
 # 訪客記錄
 class VisitorLog(models.Model):
+    visitor_id = models.IntegerField(default=0)    
     user_id = models.IntegerField(default=0)
     IP = models.CharField(max_length=20, default="")
     time = models.DateTimeField(auto_now_add=True)
