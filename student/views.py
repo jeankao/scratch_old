@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 from teacher.models import Classroom
 from student.models import Enroll, EnrollGroup, Work, Assistant, Exam, Bug, Debug
-from account.models import Log, Message, MessagePoll, Profile
+from account.models import Log, Message, MessagePoll, Profile, VisitorLog
 from certificate.models import Certificate
 from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm, BugForm, DebugForm, DebugValueForm, GroupSizeForm
 from django.utils import timezone
@@ -37,10 +37,11 @@ def classmate(request, classroom_id):
         enroll_group = []
         classroom_name=Classroom.objects.get(id=classroom_id).name
         for enroll in enrolls:
+            login_times = len(VisitorLog.objects.filter(user_id=enroll.student_id))
             if enroll.group > 0 :
-                enroll_group.append([enroll, EnrollGroup.objects.get(id=enroll.group).name])
+                enroll_group.append([enroll, EnrollGroup.objects.get(id=enroll.group).name, login_times])
             else :
-                enroll_group.append([enroll, "沒有組別"])
+                enroll_group.append([enroll, "沒有組別", login_times])
         # 記錄系統事件
         if is_event_open() :          
             log = Log(user_id=request.user.id, event=u'查看班級學生<'+classroom_name+'>')
@@ -766,3 +767,27 @@ class BugCreateView(CreateView):
 # 說明作品編號
 def work_help(request):
         return render_to_response('student/work_help.html', context_instance=RequestContext(request))
+
+
+
+# 積分排行榜
+class LoginLogListView(ListView):
+    context_object_name = 'visitorlogs'
+    paginate_by = 20
+    template_name = 'student/login_log.html'
+    def get_queryset(self):
+        visitorlogs = VisitorLog.objects.filter(user_id=self.kwargs['user_id']).order_by("-id")
+        # 記錄系統事件
+        if is_event_open() :          
+            user = User.objects.get(id=self.kwargs['user_id'])
+            log = Log(user_id=self.request.user.id, event=u'查看登入記錄<'+user.first_name+'>')
+            log.save()          
+        return visitorlogs
+        
+    def get_context_data(self, **kwargs):
+        context = super(LoginLogListView, self).get_context_data(**kwargs)
+        if self.request.GET.get('page') :
+            context['page'] = int(self.request.GET.get('page')) * 20 - 20
+        else :
+            context['page'] = 0
+        return context        

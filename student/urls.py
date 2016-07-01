@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^submitall/(?P<index>\d+)/$', views.submitall),      
     # 同學
     url(r'^classmate/(?P<classroom_id>\d+)/$', views.classmate), 
+    url(r'^loginlog/(?P<user_id>\d+)/$', views.LoginLogListView.as_view()),     
     # 分組
     url(r'^group/enroll/(?P<classroom_id>[^/]+)/(?P<group_id>[^/]+)/$', views.group_enroll),    
     url(r'^group/add/(?P<classroom_id>[^/]+)/$', views.group_add),     
