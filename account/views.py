@@ -29,6 +29,10 @@ from django.utils import timezone
 def is_event_open():
         return Profile.objects.get(user=User.objects.get(id=1)).event_open
 
+# 判斷是否為本班同學
+def is_classmate(user, classroom_id):
+    return Enroll.objects.filter(student_id=user.id, classroom_id=classroom_id).exists()
+
 
 # 網站首頁
 def homepage(request):
@@ -521,7 +525,26 @@ class LineListView(ListView):
         queryset = Message.objects.filter(author_id=self.request.user.id, classroom_id=0-int(self.kwargs['classroom_id'])).order_by("-id")
         return queryset
         
+# 列出同學以私訊
+class LineClassListView(ListView):
+    model = Enroll
+    context_object_name = 'enrolls'
+    template_name = 'account/line_class.html'   
+    
+    def get_queryset(self):
+        # 記錄系統事件
+        if is_event_open() :    
+            log = Log(user_id=self.request.user.id, event='列出同學以私訊')
+            log.save()        
+        queryset = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by("seat")
+        return queryset
         
+    # 限本班同學
+    def render_to_response(self, context):
+        if not is_classmate(self.request.user, self.kwargs['classroom_id']):
+            return redirect('/')
+        return super(LineClassListView, self).render_to_response(context)            
+                
 #新增一個私訊
 class LineCreateView(CreateView):
     model = Message
