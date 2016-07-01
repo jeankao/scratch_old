@@ -548,8 +548,10 @@ class LineClassListView(ListView):
 #新增一個私訊
 class LineCreateView(CreateView):
     model = Message
+    context_object_name = 'messages'    
     form_class = LineForm
     template_name = 'account/line_form.html'     
+
     def form_valid(self, form):
         self.object = form.save(commit=False)
         user_name = User.objects.get(id=self.request.user.id).first_name
@@ -560,7 +562,7 @@ class LineCreateView(CreateView):
         self.object.classroom_id = 0 - int(self.kwargs['classroom_id'])
         self.object.save()
         # 訊息
-        messagepoll = MessagePoll(message_id=self.object.id, reader_id=self.kwargs['user_id'])
+        messagepoll = MessagePoll(message_id=self.object.id, reader_id=self.kwargs['user_id'], classroom_id=0-int(self.kwargs['classroom_id']))
         messagepoll.save()
         # 記錄系統事件
         if is_event_open() :            
@@ -572,6 +574,13 @@ class LineCreateView(CreateView):
         context = super(LineCreateView, self).get_context_data(**kwargs)
         context['user_id'] = self.kwargs['user_id']
         context['classroom_id'] = self.kwargs['classroom_id']
+        messagepolls = MessagePoll.objects.filter(reader_id=self.kwargs['user_id'],  classroom_id=0 - int(self.kwargs['classroom_id'])).order_by('-id')
+        messages = []
+        for messagepoll in messagepolls:
+            message = Message.objects.get(id=messagepoll.message_id)
+            if message.author_id == self.request.user.id :
+                messages.append([message, messagepoll.read])
+        context['messages'] = messages
         return context	 
         
 # 查看私訊內容

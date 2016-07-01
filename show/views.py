@@ -497,6 +497,19 @@ def excel(request, classroom_id):
     workbook = xlsxwriter.Workbook(output)    
             
     shows = ShowGroup.objects.filter(classroom_id=classroom_id)
+    
+    worksheet = workbook.add_worksheet(u"分組")
+    c = 0
+    for show in shows:
+        worksheet.write(c, 0, show.name)
+        worksheet.write(c, 1, show.title)
+        worksheet.write(c, 2, "https://scratch.mit.edu/projects/"+show.number)
+        number = 3
+        members = Enroll.objects.filter(group_show=show.id)
+        for member in members:
+            worksheet.write(c, number, "("+str(member.seat)+")"+member.student.first_name)
+            number = number + 1        
+        c = c + 1
     for show in shows :
         worksheet = workbook.add_worksheet(show.name)
         worksheet.write(0,0, u"組員")
