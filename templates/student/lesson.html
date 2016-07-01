@@ -123,7 +123,7 @@ function onPlayerStateChange(event) {
         case YT.PlayerState.ENDED:
             lesson_log(activePlayer.tabName+" | STOP["+currTime+"]"); break;
         case YT.PlayerState.PLAYING:
-            alert(activePlayer.tabName);
+            alert(activePlayer);
             lesson_log(activePlayer.tabName+" | PLAY["+currTime+"]"); break;
         case YT.PlayerState.PAUSED:
             lesson_log(activePlayer.tabName+" | PAUSE["+currTime+"]"); break;
