@@ -12,8 +12,12 @@ class Classroom(models.Model):
     teacher_id = models.IntegerField(default=0)
     # 是否開放分組
     group_open = models.BooleanField(default=True)
+    # 組別人數
+    group_size = models.IntegerField(default=4)
     # 是否開放創意秀分組
     group_show_open = models.BooleanField(default=False)
+    # 組別人數
+    group_show_size = models.IntegerField(default=2)    
     
     @property
     def teacher(self):

@@ -6,6 +6,7 @@ urlpatterns = [
     # post views
 	url(r'^group/delete/(?P<group_id>[^/]+)/(?P<classroom_id>[^/]+)/$', views.group_delete), 	
     url(r'^group/enroll/(?P<classroom_id>[^/]+)/(?P<group_id>[^/]+)/$', views.group_enroll),   
+    url(r'^group/size/(?P<classroom_id>[^/]+)/$', views.group_size),     
     url(r'^group/open/(?P<classroom_id>[^/]+)/(?P<action>[^/]+)/$', views.group_open), 	
     url(r'^group/add/(?P<classroom_id>[^/]+)/$', views.group_add),     
     url(r'^group/(?P<classroom_id>[^/]+)/$', views.group),    

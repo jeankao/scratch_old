@@ -14,7 +14,7 @@ from teacher.models import Classroom
 from student.models import Enroll, EnrollGroup, Work, Assistant, Exam, Bug, Debug
 from account.models import Log, Message, MessagePoll, Profile
 from certificate.models import Certificate
-from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm, BugForm, DebugForm, DebugValueForm
+from student.forms import EnrollForm, GroupForm, SubmitForm, SeatForm, BugForm, DebugForm, DebugValueForm, GroupSizeForm
 from django.utils import timezone
 from student.lesson import *
 from account.avatar import *
@@ -50,7 +50,7 @@ def classmate(request, classroom_id):
 # 顯示所有組別
 def group(request, classroom_id):
         student_groups = []
-        classroom_name = Classroom.objects.get(id=classroom_id).name
+        classroom = Classroom.objects.get(id=classroom_id)
         group_open = Classroom.objects.get(id=classroom_id).group_open        
         groups = EnrollGroup.objects.filter(classroom_id=classroom_id)
         try:
@@ -59,7 +59,7 @@ def group(request, classroom_id):
                 student_group = []		
         for group in groups:
             enrolls = Enroll.objects.filter(classroom_id=classroom_id, group=group.id)
-            student_groups.append([group, enrolls])
+            student_groups.append([group, enrolls, classroom.group_size-len(enrolls)])
             
         #找出尚未分組的學生
         def getKey(custom):
@@ -75,7 +75,7 @@ def group(request, classroom_id):
         if is_event_open() :          
             log = Log(user_id=request.user.id, event=u'查看分組<'+classroom_name+'>')
             log.save()        
-        return render_to_response('student/group.html', {'nogroup': nogroup, 'group_open': group_open, 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group, 'teacher': is_teacher(request.user, classroom_id)}, context_instance=RequestContext(request))
+        return render_to_response('student/group.html', {'nogroup': nogroup, 'group_open': group_open, 'student_groups':student_groups, 'classroom':classroom, 'student_group':student_group, 'teacher': is_teacher(request.user, classroom_id)}, context_instance=RequestContext(request))
 
 # 新增組別
 def group_add(request, classroom_id):
@@ -95,6 +95,26 @@ def group_add(request, classroom_id):
         else:
             form = GroupForm()
         return render_to_response('student/group_add.html', {'form':form}, context_instance=RequestContext(request))
+        
+# 設定組別人數
+def group_size(request, classroom_id):
+        if request.method == 'POST':
+            form = GroupSizeForm(request.POST)
+            if form.is_valid():
+                classroom = Classroom.objects.get(id=classroom_id)
+                classroom.group_size = form.cleaned_data['group_size']
+                classroom.save()
+                
+                # 記錄系統事
+                if is_event_open() :                  
+                    log = Log(user_id=request.user.id, event=u'設定組別人數<'+classroom.name+'><'+form.cleaned_data['group_size']+'>')
+                    log.save()        
+        
+                return redirect('/student/group/'+classroom_id)
+        else:
+            classroom = Classroom.objects.get(id=classroom_id)
+            form = GroupSizeForm(instance=classroom)
+        return render_to_response('student/group_size.html', {'form':form}, context_instance=RequestContext(request))        
 
 # 加入組別
 def group_enroll(request, classroom_id,  group_id):

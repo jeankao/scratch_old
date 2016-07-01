@@ -20,6 +20,16 @@ class GroupForm(forms.ModelForm):
         def __init__(self, *args, **kwargs):
             super(GroupForm, self).__init__(*args, **kwargs)
             self.fields['name'].label = "組別名稱"
+
+# 組別人數
+class GroupSizeForm(forms.ModelForm):
+        class Meta:
+           model = Classroom
+           fields = ['group_size']
+        
+        def __init__(self, *args, **kwargs):
+            super(GroupSizeForm, self).__init__(*args, **kwargs)
+            self.fields['group_size'].label = "小組人數"
         
 class SubmitForm(forms.ModelForm):
         class Meta:

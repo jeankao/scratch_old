@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from show.models import ShowGroup, ShowReview
+from teacher.models import Classroom
 #from django.views.generic.edit import UpdateView
 
 # 組別
@@ -41,3 +42,14 @@ class ReviewForm(forms.ModelForm):
 class ImageUploadForm(forms.Form):
     """Image upload form."""
     image = forms.ImageField()
+    
+# 組別人數
+class GroupShowSizeForm(forms.ModelForm):
+        class Meta:
+           model = Classroom
+           fields = ['group_show_size']
+        
+        def __init__(self, *args, **kwargs):
+            super(GroupShowSizeForm, self).__init__(*args, **kwargs)
+            self.fields['group_show_size'].label = "小組人數"
+        

@@ -6,6 +6,7 @@
 <a href="../add/{{classroom_id}}"><img src="/static/images/icon_group_new.png">新增組別</a>
 {% endif %}
 {% if teacher %}
+<a href="../size/{{classroom_id}}"><img src="/static/images/icon_size.png">設定人數</a>
 {% if group_show_open %}
 <a href="../open/{{classroom_id}}/0"><img src="/static/images/icon_close.png">關閉選組</a>
 {% else %}
@@ -19,6 +20,7 @@
 <td>名稱</td>  
 <td>組員</td>  
 <td>狀態</td>
+<td>空位</td>
 <td>作品</td>
 <td>時間</td>
 <td>評分結果</td>
@@ -47,10 +49,15 @@
                 {% if student_group == group.0.id %}
                 已加入
                 {% else %}
+                {% if group.2 > 0 %}
                 <a href="/show/group/enroll/{{classroom_id}}/{{group.0.id}}">加入此組</a>
+                {% else %}
+                額滿
+                {% endif %}
                 {% endif %}   
 				{% endif %}
                 </td>
+                <td>{{group.2}}</td>
                 <td>
 				{% if group.0.done == True %}
 				<a href="/show/detail/{{group.0.id}}">{{group.0.title}}</a>

@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from student.models import Enroll
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from show.forms import GroupForm, ShowForm, ReviewForm, ImageUploadForm
+from show.forms import GroupForm, ShowForm, ReviewForm, ImageUploadForm, GroupShowSizeForm
 from teacher.models import Classroom
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.http import HttpResponseRedirect
@@ -38,7 +38,7 @@ def is_event_open():
 
 # 所有組別
 def group(request, classroom_id):
-        classroom_name = Classroom.objects.get(id=classroom_id).name    
+        classroom = Classroom.objects.get(id=classroom_id)   
         student_groups = []
         group_show_open = Classroom.objects.get(id=classroom_id).group_show_open
         groups = ShowGroup.objects.filter(classroom_id=classroom_id)
@@ -48,7 +48,7 @@ def group(request, classroom_id):
                 student_group = []		
         for group in groups:
             enrolls = Enroll.objects.filter(classroom_id=classroom_id, group_show=group.id)
-            student_groups.append([group, enrolls])
+            student_groups.append([group, enrolls,  classroom.group_show_size-len(enrolls)])
             
         #找出尚未分組的學生
         def getKey(custom):
@@ -87,6 +87,26 @@ def group_add(request, classroom_id):
         else:
             form = GroupForm()
         return render_to_response('show/group_add.html', {'form':form}, context_instance=RequestContext(request))
+
+# 設定組別人數
+def group_size(request, classroom_id):
+        if request.method == 'POST':
+            form = GroupShowSizeForm(request.POST)
+            if form.is_valid():
+                classroom = Classroom.objects.get(id=classroom_id)
+                classroom.group_show_size = form.cleaned_data['group_show_size']
+                classroom.save()
+                
+                # 記錄系統事
+                if is_event_open() :                  
+                    log = Log(user_id=request.user.id, event=u'設定創意秀組別人數<'+classroom.name+'><'+form.cleaned_data['group_show_size']+'>')
+                    log.save()        
+        
+                return redirect('/show/group/'+classroom_id)
+        else:
+            classroom = Classroom.objects.get(id=classroom_id)
+            form = GroupShowSizeForm(instance=classroom)
+        return render_to_response('show/group_size.html', {'form':form}, context_instance=RequestContext(request))        
 
 # 加入組別
 def group_enroll(request, classroom_id,  group_id):
