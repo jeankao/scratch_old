@@ -33,6 +33,9 @@ ul.tabs li.active a {
 .clr {
   clear: both;
 }
+.block article {
+    display: none;
+}
 article {
   border-top: gray solid 1px;
   padding: 0 1em;
@@ -46,12 +49,30 @@ function lesson_log(tabname) {
         function(data){}
     );
 }
+var playerPool = [];
+var tabName = [];
+var activePlayer = null;
 $(function () {
-    $('ul.tabs li:first').addClass('active');
-    lesson_log($('ul.tabs li:first').find('a').text());
+    $(document).scrollTop(0);
     $('.block article').hide();
-    $('.block article:first').show();
+    var defaultTab = $('ul.tabs li:first');
+    var defaultArticle = $('.block article:first');
+    var searchTab = (location.hash && $(location.hash));
+    $('ul.tabs li a').each(function(index, element){
+        tabName[$(element).attr('href').substr(1)] = $(element).text();
+        if(searchTab && $(element).attr('href') === location.hash) {
+            defaultTab = $(element).parent();
+            defaultArticle = $(location.hash);
+        }
+    });
+    $(defaultTab).addClass('active');
+    $(defaultArticle).show();
+    lesson_log($(defaultTab).find('a').text());
     $('ul.tabs li').on('click', function () {
+        if (activePlayer) {
+            activePlayer.pauseVideo();
+            activePlayer = null;
+        }
         $('ul.tabs li').removeClass('active');
         $(this).addClass('active');
         $('.block article').hide();
@@ -66,12 +87,49 @@ $(function () {
 	$('.playlist li').click(function(){
 		var time = $(this).attr('data-playPeriod').match(/[0-9]+/g);
 		var duration = time[1]-time[0];
-		var playerID = $(this).parent().attr("data-playerID");
-		$('#'+playerID).attr('src', 'https://www.youtube.com/embed/'+$(this).parent().attr("data-videoID")+'?start='+time[0]+'&end='+time[1]+'&rel=0&enablejsapi=1&autoplay=1&autostart=1');
+        var sPlayer = playerPool['tab4_player'];
+        var videoID = sPlayer.getVideoUrl().match(/v=[^&]+/g)[0].split("=")[1];
+        sPlayer.loadVideoById({'videoId': videoID, 'startSeconds':time[0], 'endSeconds':time[1]});
 	});
     {% endif %}
 });
 //# sourceURL=pen.js
+var tag = document.createElement('script');
+tag.id = 'iframe-demo';
+tag.src = 'https://www.youtube.com/iframe_api';
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+function onYouTubeIframeAPIReady() {
+    $('iframe[src*="www.youtube.com"]').each(function(index,element){
+        var playerID = $(element).parent().attr('id')+'_player';
+        $(element).attr('id', playerID);
+        player = new YT.Player(playerID, {
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+        player.tabName = tabName[$(element).parent().attr('id')];
+        playerPool[playerID] = player;
+    });
+}
+function secToTime(sec) {
+    return (new Date(sec*1000)).toUTCString().split(' ')[4];
+}
+function onPlayerStateChange(event) {
+    activePlayer = event.target;
+    currTime = secToTime(activePlayer.getCurrentTime().toFixed());
+    alert(activePlayer.tabName)
+    switch(event.data) {
+        case YT.PlayerState.ENDED:
+            lesson_log(activePlayer.tabName+" | STOP["+currTime+"]"); break;
+        case YT.PlayerState.PLAYING:
+            lesson_log(activePlayer.tabName+" | PLAY["+currTime+"]"); break;
+        case YT.PlayerState.PAUSED:
+            lesson_log(activePlayer.tabName+" | PAUSE["+currTime+"]"); break;
+    }
+}
+
 </script>
 {% endblock %}
 {% block content %}
@@ -81,7 +139,7 @@ $(function () {
   <h1>第1堂課</h1>
   <ul class="tabs">
     <li><a href="#tab1">影片：為什麼要學程式設計</a></li>
-    <li><a href="javascript:lesson_log('hour of code');window.open('https://studio.code.org/hoc/1','_blank');">1小時學程式設計</a></li>
+    <li><a href="https://studio.code.org/hoc/1" target=_blank>1小時學程式設計</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab0">證書</a></li>
     {% endif %}
@@ -97,10 +155,13 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/fAbrNXTgkeo" frameborder="0" allowfullscreen></iframe>
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/fAbrNXTgkeo?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
     </article>
     <article id="tab0">
         <BR>
+	{% if certificate %}
+	<img src="/{{certificate.picture}}">
+	{% endif %}
 	<form action="/certificate/" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_image" type="file" class="" name="image">
@@ -110,7 +171,7 @@ $(function () {
     </article>
     <article id="tab2">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/AImNJyXxzUA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/AImNJyXxzUA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab3">
         <BR>
@@ -120,12 +181,11 @@ $(function () {
 <BR>2.	設定歌手造型及其演唱的歌曲。
 <BR>3.	讓舞台呈現的動態效果。
 <BR>4.	讓歌手演唱歌曲並跳舞。
- 
  </article>	
     <article id="tab4">
 		<BR>
-        <iframe id="player" width="900" height="520" src="https://www.youtube.com/embed/08PXzHfnI5A?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
-        <ul	 class="playlist" data-playerID="player" data-videoID="08PXzHfnI5A">
+        <iframe id="tab4_player" width="900" height="520" src="https://www.youtube.com/embed/08PXzHfnI5A?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
+        <ul	 class="playlist" data-playerID="tab4_player" data-videoID="08PXzHfnI5A">
 			<li data-playPeriod="[31:112]">步驟1 搭建一個表演的舞台。</li>
 			<li data-playPeriod="[120:224]">步驟2 設定歌手造型並跳舞。</li>
 			<li data-playPeriod="[228:309]">步驟3 讓歌手演唱歌曲。</li>
@@ -138,7 +198,6 @@ $(function () {
 	<article id="tab6">
         <iframe width="900" height="720" src="/student/submit/1" frameborder="0" allowfullscreen></iframe>   
     </article>
-
 </section>
 <!--------------------------------------------------------------------------------------------------------------------------------------------------------------->
 {% elif lesson == "2" %}
@@ -169,7 +228,7 @@ $(function () {
     </article>
     <article id="tab3">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/7siMzGSbjUk" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/7siMzGSbjUk?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
    <article id="tab4">
         <br>
@@ -187,14 +246,14 @@ $(function () {
   <ul class="tabs">
     <li><a href="#tab1">影片：計次式迴圈</a></li>
     <li><a href="#tab2">範例：馬兒跑步</a></li>
-	<li><a href="#tab3">影片1</a></li>
-	<li><a href="#tab4">心智圖1</a></li>	
+	<li><a href="#tab3">影片</a></li>
+	<li><a href="#tab4">心智圖</a></li>	
 	{% if user.is_authenticated %}	
     <li><a href="#tab5">作業：馬兒跑步</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：變大變小</a></li>
-    <li><a href="#tab7">影片2</a></li>
-	<li><a href="#tab8">心智圖2</a></li>
+    <li><a href="#tab7">影片</a></li>
+	<li><a href="#tab8">心智圖</a></li>
 	{% if user.is_authenticated %}	
     <li><a href="#tab9">作業：變大變小</a></li>    
 	{% endif %}
@@ -203,7 +262,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/1pL-RevYlDc" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/1pL-RevYlDc?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -213,7 +272,7 @@ $(function () {
     </article>	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/vSGCwF-EXuc" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/vSGCwF-EXuc?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
    <article id="tab4">
         <br>
@@ -231,7 +290,7 @@ $(function () {
     </article>
     <article id="tab7">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/x26GUc6-pto" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/x26GUc6-pto?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
    <article id="tab8">
         <br>
@@ -250,14 +309,14 @@ $(function () {
   <ul class="tabs">
     <li><a href="#tab1">影片：條件式迴圈</a></li>
     <li><a href="#tab2">範例：貓狗賽跑</a></li>
-    <li><a href="#tab3">影片1</a></li>
-    <li><a href="#tab4">心智圖1</a></li>
+    <li><a href="#tab3">影片</a></li>
+    <li><a href="#tab4">心智圖</a></li>
 	{% if user.is_authenticated %}	
     <li><a href="#tab5">作業：貓狗賽跑</a></li>
  	{% endif %}
    <li><a href="#tab6">練習：發球</a></li>    
-    <li><a href="#tab7">影片2</a></li>    
-    <li><a href="#tab8">心智圖2</a></li>
+    <li><a href="#tab7">影片</a></li>    
+    <li><a href="#tab8">心智圖</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab9">作業：發球</a></li>    
 	{% endif %}
@@ -266,7 +325,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/QMVJWV33GwA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/QMVJWV33GwA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -276,7 +335,7 @@ $(function () {
     </article>	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/nQTBTIIL9Lg" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/nQTBTIIL9Lg?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
   <article id="tab4">
         <br>
@@ -294,7 +353,7 @@ $(function () {
     </article>	
     <article id="tab7">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/ePeQu8zhf78" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/ePeQu8zhf78?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab8">
         <br>
@@ -313,14 +372,14 @@ $(function () {
   <ul class="tabs">
     <li><a href="#tab1">影片：無窮迴圈</a></li>
     <li><a href="#tab2">範例：魚兒水中游</a></li>
-    <li><a href="#tab3">影片1</a></li>
-    <li><a href="#tab4">心智圖1</a></li>
+    <li><a href="#tab3">影片</a></li>
+    <li><a href="#tab4">心智圖</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：魚兒水中游</a></li>
  	{% endif %}
    <li><a href="#tab6">練習：不斷發球</a></li>    
-    <li><a href="#tab7">影片2</a></li>  
-    <li><a href="#tab8">心智圖2</a></li>  
+    <li><a href="#tab7">影片</a></li>  
+    <li><a href="#tab8">心智圖</a></li>  
 	{% if user.is_authenticated %}
     <li><a href="#tab9">作業：不斷發球</a></li>    
 	{% endif %}
@@ -329,7 +388,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/apkBgtMItDo" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/apkBgtMItDo?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -339,7 +398,7 @@ $(function () {
     </article>	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/P3IIw2xhxm8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/P3IIw2xhxm8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4">
         <br>
@@ -357,7 +416,7 @@ $(function () {
     </article>
     <article id="tab7">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/KGmH9EKFqEc" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/KGmH9EKFqEc?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab8">
         <br>
@@ -376,14 +435,14 @@ $(function () {
   <ul class="tabs">
     <li><a href="#tab1">影片：單向選擇結構</a></li>
     <li><a href="#tab2">範例：電流急急棒</a></li>
-    <li><a href="#tab3">影片1</a></li>
-    <li><a href="#tab4">心智圖1</a></li>
+    <li><a href="#tab3">影片</a></li>
+    <li><a href="#tab4">心智圖</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：電流急急棒</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：開車</a></li>  
-    <li><a href="#tab7">影片2</a></li>  
-    <li><a href="#tab8">心智圖2</a></li>
+    <li><a href="#tab7">影片</a></li>  
+    <li><a href="#tab8">心智圖</a></li>
 	{% if user.is_authenticated %}  	
     <li><a href="#tab9">作業：開車</a></li>    
 	{% endif %}
@@ -392,7 +451,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/uG7EdV-hZ6o" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/uG7EdV-hZ6o?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
    <article id="tab2">
         <BR>
@@ -402,7 +461,7 @@ $(function () {
     </article>	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/xAGByzQFmZA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/xAGByzQFmZA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4">
         <br>
@@ -420,7 +479,7 @@ $(function () {
     </article>	
      <article id="tab7">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/EKdZlD2oOqQ" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/EKdZlD2oOqQ?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab8">
         <br>
@@ -439,14 +498,14 @@ $(function () {
   <ul class="tabs">
     <li><a href="#tab1">影片：雙向選擇結構</a></li>
     <li><a href="#tab2">範例：打地鼠</a></li>
-    <li><a href="#tab3">影片1</a></li>
-    <li><a href="#tab4">心智圖1</a></li>
+    <li><a href="#tab3">影片</a></li>
+    <li><a href="#tab4">心智圖</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：打地鼠</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：密碼檢查</a></li>    
-    <li><a href="#tab7">影片2</a></li>  
-    <li><a href="#tab8">心智圖2</a></li>
+    <li><a href="#tab7">影片</a></li>  
+    <li><a href="#tab8">心智圖</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab9">作業：密碼檢查</a></li>   	
 	{% endif %}
@@ -455,7 +514,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/QtvXqxykAWA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/QtvXqxykAWA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
    <article id="tab2">
         <BR>
@@ -465,7 +524,7 @@ $(function () {
     </article>	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/dgAOtjyZFQ8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/dgAOtjyZFQ8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4">
         <br>
@@ -483,7 +542,7 @@ $(function () {
     </article>		
     <article id="tab7">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/iAFdX-yQGW0" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/iAFdX-yQGW0?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab8">
         <br>
@@ -512,7 +571,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/lLIBIEWQIJk" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/lLIBIEWQIJk?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab2">
         <BR>
@@ -522,7 +581,7 @@ $(function () {
     </article>			
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/azfituk-JiU" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/azfituk-JiU?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4">
         <br>
@@ -556,7 +615,7 @@ $(function () {
     </article>  
     <article id="tab2">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/qIEqLjWYMM8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/qIEqLjWYMM8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab3">
         <br>
@@ -585,7 +644,7 @@ $(function () {
   <section class="block">
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/M-4NPct5Hmw" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/M-4NPct5Hmw?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab2">
         <BR>
@@ -595,7 +654,7 @@ $(function () {
     </article>  	
     <article id="tab3">
         <br>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/XEsKBHxcf2g" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/XEsKBHxcf2g?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4">
         <br>
@@ -615,13 +674,13 @@ $(function () {
     <li><a href="#tab1">範例：養魚</a></li>
     <li><a href="#tab2">影片：養魚(上)</a></li>
     <li><a href="#tab3">影片：養魚(下)</a></li>   
-    <li><a href="#tab4">心智圖1</a></li>
+    <li><a href="#tab4">心智圖</a></li>
 	{% if user.is_authenticated %}   	
     <li><a href="#tab5">作業：養魚</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：打磚塊</a></li>   	
-    <li><a href="#tab7">影片2</a></li>   
-    <li><a href="#tab8">心智圖2</a></li>
+    <li><a href="#tab7">影片</a></li>   
+    <li><a href="#tab8">心智圖</a></li>
 	{% if user.is_authenticated %}   	
     <li><a href="#tab9">作業：打磚塊</a></li>    
 	{% endif %}
@@ -636,11 +695,11 @@ $(function () {
     </article>   
     <article id="tab2">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/CobY5S1znSw" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/CobY5S1znSw?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab3">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/61KiB2GFbC8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/61KiB2GFbC8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab4"
         <br>
@@ -658,7 +717,7 @@ $(function () {
     </article>   
     <article id="tab7">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/tds96KSqUd8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/tds96KSqUd8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
 	<article id="tab8">
         <br>
@@ -689,7 +748,7 @@ $(function () {
     </article>    
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/vPAHkPARafA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/vPAHkPARafA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -721,7 +780,7 @@ $(function () {
     </article>    
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/FxFkj0P0VdY" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/FxFkj0P0VdY?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -753,7 +812,7 @@ $(function () {
     </article>    
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/8CkpsV-4bN0" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/8CkpsV-4bN0?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -785,7 +844,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/426Wn0iV3DA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/426Wn0iV3DA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -817,7 +876,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/OueKqzrrQWA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/OueKqzrrQWA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -849,7 +908,7 @@ $(function () {
     </article>   
   <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/kvS2fqCcTmE" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/kvS2fqCcTmE?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -881,7 +940,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/nPxW5vx_wW8" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/nPxW5vx_wW8?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -967,7 +1026,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/FJ4TXEz4n2o" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/FJ4TXEz4n2o?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -999,7 +1058,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/EZBQKwC2VDA" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/EZBQKwC2VDA?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1031,7 +1090,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/__XATaQZaYE" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/__XATaQZaYE?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1063,7 +1122,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/W0ODgzaTyxI" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/W0ODgzaTyxI?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1095,7 +1154,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/rvDPEMhpM8M" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/rvDPEMhpM8M?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1127,7 +1186,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/HAUqbmLrhY0" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/HAUqbmLrhY0?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1159,7 +1218,7 @@ $(function () {
     </article>   
    <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/tC43RLwmNYg" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/tC43RLwmNYg?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1232,7 +1291,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/uMgb9yoMdEo" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/uMgb9yoMdEo?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1264,7 +1323,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/BsaIb9BLKHE" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/BsaIb9BLKHE?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1296,7 +1355,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/3qu-r1VC6gM" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/3qu-r1VC6gM?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1328,7 +1387,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/DNokj3S_7yQ" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/DNokj3S_7yQ?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1360,7 +1419,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/f3_72Sy6q44" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/f3_72Sy6q44?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1392,7 +1451,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/w3vvnsd-5rw" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/w3vvnsd-5rw?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1424,7 +1483,7 @@ $(function () {
     </article>   
     <article id="tab1">
         <BR>
-        <iframe width="900" height="520" src="https://www.youtube.com/embed/r2YYoktc2Uk" frameborder="0" allowfullscreen></iframe>   
+        <iframe width="900" height="520" src="https://www.youtube.com/embed/r2YYoktc2Uk?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>   
     </article>
     <article id="tab2">
         <BR>
@@ -1444,7 +1503,7 @@ $(function () {
     <li><a href="#tab2">說明文字</a></li>
     <li><a href="#tab3">圖片下載</a></li>
 	{% if user.is_authenticated %}	
-    <li><a href="#tab4">作業：見縫插針</a></li>
+    <li><a href="#tab4">見縫插針</a></li>
 	{% endif %}
   <div class="clr"></div>
   <section class="block">
