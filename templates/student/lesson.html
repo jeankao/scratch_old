@@ -60,6 +60,7 @@ $(function () {
     var searchTab = (location.hash && $(location.hash));
     $('ul.tabs li a').each(function(index, element){
         tabName[$(element).attr('href').substr(1)] = $(element).text();
+        alert('element'+$(element).text());
         if(searchTab && $(element).attr('href') === location.hash) {
             defaultTab = $(element).parent();
             defaultArticle = $(location.hash);
@@ -110,7 +111,7 @@ function onYouTubeIframeAPIReady() {
             }
         });
         player.tabName = tabName[$(element).parent().attr('id')];
-        alert(player.tabName);
+        alert('player.tabname:'+player.tabName);
         playerPool[playerID] = player;
     });
 }
