@@ -398,7 +398,7 @@ class EventListView(ListView):
             if self.request.GET.get('q') != None:
                 queryset = Log.objects.filter(event__icontains=self.request.GET.get('q')).order_by('-id')
             else :
-                queryset = Log.objects.order_by('-id')
+                queryset = Log.objects.all().order_by('-id')
         else :
             if self.request.GET.get('q') != None:
                 queryset = Log.objects.filter(user_id=self.kwargs['user_id'],event__icontains=self.request.GET.get('q')).order_by('-id')

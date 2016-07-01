@@ -251,11 +251,11 @@ def lesson(request, lesson):
             return redirect("/account/login/")    
         else :
             # 記錄系統事件 
-            if is_event_open() :              
-                log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'>')
-                log.save()     
+            # log = Log(user_id=request.user.id, event=u'課程內容<'+lesson+'>')
+            #lo.save()
+            # 改由 lesson_log 統一處理，含各課程之分頁 
             return render_to_response('student/lesson.html', {'lesson':lesson}, context_instance=RequestContext(request))
-
+        
 # 上傳作業  
 def submit(request, index):
         scores = []

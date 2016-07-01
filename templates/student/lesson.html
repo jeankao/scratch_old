@@ -138,7 +138,7 @@ function onPlayerStateChange(event) {
   <h1>第1堂課</h1>
   <ul class="tabs">
     <li><a href="#tab1">影片：為什麼要學程式設計</a></li>
-    <li><a href="https://studio.code.org/hoc/1" target=_blank>1小時學程式設計</a></li>
+    <li><a href="javascript:lesson_log('hour of code');window.open('https://studio.code.org/hoc/1','_blank');">1小時學程式設計</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab0">證書</a></li>
     {% endif %}
@@ -158,9 +158,6 @@ function onPlayerStateChange(event) {
     </article>
     <article id="tab0">
         <BR>
-	{% if certificate %}
-	<img src="/{{certificate.picture}}">
-	{% endif %}
 	<form action="/certificate/" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_image" type="file" class="" name="image">
@@ -180,11 +177,12 @@ function onPlayerStateChange(event) {
 <BR>2.	設定歌手造型及其演唱的歌曲。
 <BR>3.	讓舞台呈現的動態效果。
 <BR>4.	讓歌手演唱歌曲並跳舞。
+ 
  </article>	
     <article id="tab4">
 		<BR>
-        <iframe id="tab4_player" width="900" height="520" src="https://www.youtube.com/embed/08PXzHfnI5A?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
-        <ul	 class="playlist" data-playerID="tab4_player" data-videoID="08PXzHfnI5A">
+        <iframe id="player" width="900" height="520" src="https://www.youtube.com/embed/08PXzHfnI5A?autoplay=0&autostart=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
+        <ul	 class="playlist" data-playerID="player" data-videoID="08PXzHfnI5A">
 			<li data-playPeriod="[31:112]">步驟1 搭建一個表演的舞台。</li>
 			<li data-playPeriod="[120:224]">步驟2 設定歌手造型並跳舞。</li>
 			<li data-playPeriod="[228:309]">步驟3 讓歌手演唱歌曲。</li>
@@ -245,14 +243,14 @@ function onPlayerStateChange(event) {
   <ul class="tabs">
     <li><a href="#tab1">影片：計次式迴圈</a></li>
     <li><a href="#tab2">範例：馬兒跑步</a></li>
-	<li><a href="#tab3">影片</a></li>
-	<li><a href="#tab4">心智圖</a></li>	
+	<li><a href="#tab3">影片1</a></li>
+	<li><a href="#tab4">心智圖1</a></li>	
 	{% if user.is_authenticated %}	
     <li><a href="#tab5">作業：馬兒跑步</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：變大變小</a></li>
-    <li><a href="#tab7">影片</a></li>
-	<li><a href="#tab8">心智圖</a></li>
+    <li><a href="#tab7">影片2</a></li>
+	<li><a href="#tab8">心智圖2</a></li>
 	{% if user.is_authenticated %}	
     <li><a href="#tab9">作業：變大變小</a></li>    
 	{% endif %}
@@ -308,14 +306,14 @@ function onPlayerStateChange(event) {
   <ul class="tabs">
     <li><a href="#tab1">影片：條件式迴圈</a></li>
     <li><a href="#tab2">範例：貓狗賽跑</a></li>
-    <li><a href="#tab3">影片</a></li>
-    <li><a href="#tab4">心智圖</a></li>
+    <li><a href="#tab3">影片1</a></li>
+    <li><a href="#tab4">心智圖1</a></li>
 	{% if user.is_authenticated %}	
     <li><a href="#tab5">作業：貓狗賽跑</a></li>
  	{% endif %}
    <li><a href="#tab6">練習：發球</a></li>    
-    <li><a href="#tab7">影片</a></li>    
-    <li><a href="#tab8">心智圖</a></li>
+    <li><a href="#tab7">影片2</a></li>    
+    <li><a href="#tab8">心智圖2</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab9">作業：發球</a></li>    
 	{% endif %}
@@ -371,14 +369,14 @@ function onPlayerStateChange(event) {
   <ul class="tabs">
     <li><a href="#tab1">影片：無窮迴圈</a></li>
     <li><a href="#tab2">範例：魚兒水中游</a></li>
-    <li><a href="#tab3">影片</a></li>
-    <li><a href="#tab4">心智圖</a></li>
+    <li><a href="#tab3">影片1</a></li>
+    <li><a href="#tab4">心智圖1</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：魚兒水中游</a></li>
  	{% endif %}
    <li><a href="#tab6">練習：不斷發球</a></li>    
-    <li><a href="#tab7">影片</a></li>  
-    <li><a href="#tab8">心智圖</a></li>  
+    <li><a href="#tab7">影片2</a></li>  
+    <li><a href="#tab8">心智圖2</a></li>  
 	{% if user.is_authenticated %}
     <li><a href="#tab9">作業：不斷發球</a></li>    
 	{% endif %}
@@ -434,14 +432,14 @@ function onPlayerStateChange(event) {
   <ul class="tabs">
     <li><a href="#tab1">影片：單向選擇結構</a></li>
     <li><a href="#tab2">範例：電流急急棒</a></li>
-    <li><a href="#tab3">影片</a></li>
-    <li><a href="#tab4">心智圖</a></li>
+    <li><a href="#tab3">影片1</a></li>
+    <li><a href="#tab4">心智圖1</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：電流急急棒</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：開車</a></li>  
-    <li><a href="#tab7">影片</a></li>  
-    <li><a href="#tab8">心智圖</a></li>
+    <li><a href="#tab7">影片2</a></li>  
+    <li><a href="#tab8">心智圖2</a></li>
 	{% if user.is_authenticated %}  	
     <li><a href="#tab9">作業：開車</a></li>    
 	{% endif %}
@@ -497,14 +495,14 @@ function onPlayerStateChange(event) {
   <ul class="tabs">
     <li><a href="#tab1">影片：雙向選擇結構</a></li>
     <li><a href="#tab2">範例：打地鼠</a></li>
-    <li><a href="#tab3">影片</a></li>
-    <li><a href="#tab4">心智圖</a></li>
+    <li><a href="#tab3">影片1</a></li>
+    <li><a href="#tab4">心智圖1</a></li>
 	{% if user.is_authenticated %}
     <li><a href="#tab5">作業：打地鼠</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：密碼檢查</a></li>    
-    <li><a href="#tab7">影片</a></li>  
-    <li><a href="#tab8">心智圖</a></li>
+    <li><a href="#tab7">影片2</a></li>  
+    <li><a href="#tab8">心智圖2</a></li>
 	{% if user.is_authenticated %}    
     <li><a href="#tab9">作業：密碼檢查</a></li>   	
 	{% endif %}
@@ -673,13 +671,13 @@ function onPlayerStateChange(event) {
     <li><a href="#tab1">範例：養魚</a></li>
     <li><a href="#tab2">影片：養魚(上)</a></li>
     <li><a href="#tab3">影片：養魚(下)</a></li>   
-    <li><a href="#tab4">心智圖</a></li>
+    <li><a href="#tab4">心智圖1</a></li>
 	{% if user.is_authenticated %}   	
     <li><a href="#tab5">作業：養魚</a></li>
 	{% endif %}
     <li><a href="#tab6">練習：打磚塊</a></li>   	
-    <li><a href="#tab7">影片</a></li>   
-    <li><a href="#tab8">心智圖</a></li>
+    <li><a href="#tab7">影片2</a></li>   
+    <li><a href="#tab8">心智圖2</a></li>
 	{% if user.is_authenticated %}   	
     <li><a href="#tab9">作業：打磚塊</a></li>    
 	{% endif %}
@@ -977,7 +975,6 @@ function onPlayerStateChange(event) {
 <BR>房屋：house.gif
 <BR>禮物：present.gif
 <BR>過關：pass.png
-
 <BR>【配分】
 <BR>5分 設置背景圖為星空(background.gif)。
 <BR>5分 設置房屋(house.gif)在畫面下方。
@@ -1226,7 +1223,7 @@ function onPlayerStateChange(event) {
     <article id="tab3">
         <BR>
         <iframe width="900" height="720" src="/student/submit/32" frameborder="0" allowfullscreen></iframe>   
-    </article>        
+        </article>        
 </section>
 <!-------------------------------------------------------------------------------------------------------------------------------------------------------------->
 {% elif lesson == "B08" %}
@@ -1502,7 +1499,7 @@ function onPlayerStateChange(event) {
     <li><a href="#tab2">說明文字</a></li>
     <li><a href="#tab3">圖片下載</a></li>
 	{% if user.is_authenticated %}	
-    <li><a href="#tab4">見縫插針</a></li>
+    <li><a href="#tab4">作業：見縫插針</a></li>
 	{% endif %}
   <div class="clr"></div>
   <section class="block">
@@ -1528,7 +1525,6 @@ function onPlayerStateChange(event) {
 <BR>10分	新增分數變數 ，起始遊戲時要歸零，顯示在畫面左上方。當箭角色分身射到紅色中心時，加1分，發出聲音pop。
 <BR>10分	箭角色分身射到其他藍色箭，即結束遊戲，畫面顯示出Game Over。但此時要保持畫面上所有的箭，不可以讓分身箭消失，直到按下八角形停止鍵或綠旗重新開始。
 <BR>25分	你可能還需要用新變數或廣播來控制，這最後25分看你能否讓畫面流暢合理，讓射出的箭走直線(箭的方向)，不要有漂移的箭。射在紅色中心，跟著旋轉的箭也要流暢合理、不穿幫。如果你的旋轉中心角色，轉起來會搖擺就不像圓，那其他箭旋轉起來也會不自然，通常是沒放在中心點沒有調好。
-
     </article>
     <article id="tab3">
         <BR>
