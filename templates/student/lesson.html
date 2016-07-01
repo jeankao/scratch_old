@@ -110,6 +110,7 @@ function onYouTubeIframeAPIReady() {
             }
         });
         player.tabName = tabName[$(element).parent().attr('id')];
+        alert(player.tabName);
         playerPool[playerID] = player;
     });
 }
