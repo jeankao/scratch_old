@@ -373,6 +373,8 @@ def lesson_log(request, lesson):
     if is_event_open() :      
         log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'> | '+tabname)
         log.save()
+    return JsonResponse({'status':'ok'}, safe=False)
+
 
 # 查詢某作業分組小老師    
 def work_group(request, lesson, classroom_id):
