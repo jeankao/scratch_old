@@ -43,6 +43,7 @@ article {
 <script src='//assets.codepen.io/assets/common/stopExecutionOnTimeout.js?t=1'></script>
 <!-- <script src='/static/js/youtube.util.js'></script> -->
 <script>
+
 function lesson_log(tabname) {
     $.post('/student/lesson/log/{{lesson}}/',
         {'tabname': tabname},
@@ -52,6 +53,7 @@ function lesson_log(tabname) {
 var playerPool = [];
 var tabName = [];
 var activePlayer = null;
+
 $(function () {
     $(document).scrollTop(0);
     $('.block article').hide();
@@ -59,8 +61,7 @@ $(function () {
     var defaultArticle = $('.block article:first');
     var searchTab = (location.hash && $(location.hash));
     $('ul.tabs li a').each(function(index, element){
-        tabName[$(element).attr('href').substr(1)] = $(element).text();
-        alert('element'+$(element).text());
+        //tabName[$(element).attr('href').substr(1)] = $(element).text();
         if(searchTab && $(element).attr('href') === location.hash) {
             defaultTab = $(element).parent();
             defaultArticle = $(location.hash);
@@ -102,6 +103,9 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 function onYouTubeIframeAPIReady() {
+    $('ul.tabs li a').each(function(index, element){
+        tabName[$(element).attr('href').substr(1)] = $(element).text();
+    });    
     $('iframe[src*="www.youtube.com"]').each(function(index,element){
         var playerID = $(element).parent().attr('id')+'_player';
         $(element).attr('id', playerID);
@@ -111,7 +115,6 @@ function onYouTubeIframeAPIReady() {
             }
         });
         player.tabName = tabName[$(element).parent().attr('id')];
-        alert('player.tabname:'+player.tabName);
         playerPool[playerID] = player;
     });
 }
@@ -125,15 +128,11 @@ function onPlayerStateChange(event) {
         case YT.PlayerState.ENDED:
             lesson_log(activePlayer.tabName+" | STOP["+currTime+"]"); break;
         case YT.PlayerState.PLAYING:
-            alert(activePlayer.tabName);
-            alert(activePlayer);
-            alert(activePlayer.tabName);
             lesson_log(activePlayer.tabName+" | PLAY["+currTime+"]"); break;
         case YT.PlayerState.PAUSED:
             lesson_log(activePlayer.tabName+" | PAUSE["+currTime+"]"); break;
     }
 }
-
 </script>
 {% endblock %}
 {% block content %}
@@ -1542,4 +1541,5 @@ function onPlayerStateChange(event) {
 </section>
 {% endif %}
 {% endblock %}
+
 

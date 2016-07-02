@@ -21,6 +21,8 @@ class Profile(models.Model):
 	avatar = models.IntegerField(default=0)
 	# 事件
 	event_open = models.BooleanField(default=False)
+	# 課程事件
+	event_video_open = models.BooleanField(default=True)
 	# 訪客人次
 	visitor_count = models.IntegerField(default=0)
 	# 開站時間

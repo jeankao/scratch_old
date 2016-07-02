@@ -2,7 +2,8 @@
 {% block title %} Teachers {% endblock %}
 {% block content %}
 {% load tag %}
-        {% if is_event_open %}<a href="#" data-action="close" class="event"><img src="/static/images/icon_close.png">關閉事件記錄</a>{% else %}<a href="#" data-action="open" class="event"><img src="/static/images/icon_open.png">開啟事件記錄</a>{% endif %}|
+        {% if is_event_open %}<a href="#" data-action="close" class="event"><img src="/static/images/icon_close.png">關閉所有事件記錄</a>{% else %}<a href="#" data-action="open" class="event"><img src="/static/images/icon_open.png">開啟所有事件記錄</a>{% endif %}|
+        {% if is_event_video_open %}<a href="#" data-action="close" class="event_video"><img src="/static/images/icon_close.png">關閉影片事件記錄</a>{% else %}<a href="#" data-action="open" class="event_video"><img src="/static/images/icon_open.png">開啟影片事件記錄</a>{% endif %}|
         <a href="/account/event/clear" onclick="return confirm('確定要清除嗎?')"><img src="/static/images/icon_clear.png">清除所有事件</a>|
         <a href="/account/event/excel"><img src="/static/images/icon_excel.png">下載所有事件到Excel</a>
 <BR>
@@ -43,11 +44,38 @@
         {
           var previous_action = $(launcher).data('action');
 		   if (previous_action == 'open') {
-               $(launcher).html("關閉事件記錄");
+               $(launcher).html("<img src='/static/images/icon_close.png'>關閉所有事件記錄");
                $(launcher).data('action', 'close');
            } else {
                $(launcher).data('action', 'open');
-               $(launcher).html("開啟事件記錄");
+               $(launcher).html("<img src='/static/images/icon_open.png'>開啟所有事件記錄");
+           }
+        }
+		else {
+				alert('hello');
+		}
+      }
+    );
+  });
+  
+   $('a.event_video').click(function(e){
+    var launcher = this;  
+    e.preventDefault();
+    $.post('/account/event/video/make/',
+      {
+        event_open: $(launcher).data('eventopen'),
+        action: $(launcher).data('action'),
+      },
+      function(data){
+        if (data['status'] == 'ok')
+        {
+          var previous_action = $(launcher).data('action');
+		   if (previous_action == 'open') {
+               $(launcher).html("<img src='/static/images/icon_close.png'>關閉影片事件記錄");
+               $(launcher).data('action', 'close');
+           } else {
+               $(launcher).data('action', 'open');
+               $(launcher).html("<img src='/static/images/icon_open.png'>開啟影片事件記錄");
            }
         }
 		else {

@@ -37,6 +37,7 @@ urlpatterns = [
     url(r'^event/clear/$', views.clear),
     url(r'^event/excel/$', views.event_excel),
     url(r'^event/make/$', views.event_make),    
+    url(r'^event/video/make/$', views.event_video_make), 
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
     # 讀取訊息

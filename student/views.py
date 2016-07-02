@@ -26,10 +26,13 @@ from django.http import JsonResponse
 def is_teacher(user, classroom_id):
     return  user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
 
-# 判斷是否開啟事件記錄
+# 判斷是否開啟所有事件記錄
 def is_event_open():
     return Profile.objects.get(user=User.objects.get(id=1)).event_open
 
+# 判斷是否開啟課程事件記錄
+def is_event_video_open():
+    return Profile.objects.get(user=User.objects.get(id=1)).event_video_open
 
 # 查看班級學生
 def classmate(request, classroom_id):
@@ -370,9 +373,13 @@ def work(request, classroom_id):
 def lesson_log(request, lesson):
     # 記錄系統事件
     tabname = request.POST.get('tabname')
-    if is_event_open() :      
+    if is_event_open():   
         log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'> | '+tabname)
         log.save()
+    elif is_event_video_open():
+        if u"影片" in tabname:
+            log = Log(user_id=request.user.id, event=u'查看課程內容<'+lesson+'> | '+tabname)
+            log.save()
     return JsonResponse({'status':'ok'}, safe=False)
 
 

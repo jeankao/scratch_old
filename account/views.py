@@ -29,6 +29,10 @@ from django.utils import timezone
 def is_event_open():
         return Profile.objects.get(user=User.objects.get(id=1)).event_open
 
+# 判斷是否開啟課程事件記錄
+def is_event_video_open():
+        return Profile.objects.get(user=User.objects.get(id=1)).event_video_open
+
 # 判斷是否為本班同學
 def is_classmate(user, classroom_id):
     return Enroll.objects.filter(student_id=user.id, classroom_id=classroom_id).exists()
@@ -78,9 +82,9 @@ def user_login(request):
                                         profile.visitor_count = profile.visitor_count + 1
                                         profile.save()
                                         
-                                        year = timezone.now().year
-                                        month =  timezone.now().month
-                                        day =  timezone.now().day
+                                        year = localtime(timezone.now()).year
+                                        month =  localtime(timezone.now()).month
+                                        day =  localtime(timezone.now()).day
                                         date_number = year * 10000 + month*100 + day
                                         try:
                                             visitor = Visitor.objects.get(date=date_number)
@@ -412,6 +416,7 @@ class EventListView(ListView):
         q = self.request.GET.get('q')
         context.update({'q': q})
         context['is_event_open'] = Profile.objects.get(user=User.objects.get(id=1)).event_open
+        context['is_event_video_open'] = Profile.objects.get(user=User.objects.get(id=1)).event_video_open        
         return context	
 	
 # 下載檔案
@@ -502,7 +507,20 @@ def event_make(request):
             return JsonResponse({'status':'ok'}, safe=False)
     else:
             return JsonResponse({'status':'ko'}, safe=False)
-            
+     
+def event_video_make(request):
+    action = request.POST.get('action')
+    if action :
+            profile = Profile.objects.get(user=User.objects.get(id=1))
+            if action == 'open':
+                profile.event_video_open = True
+            else :
+                profile.event_video_open = False
+            profile.save()
+            return JsonResponse({'status':'ok'}, safe=False)
+    else:
+            return JsonResponse({'status':'ko'}, safe=False)
+
 def message(request, messagepoll_id):
     messagepoll = MessagePoll.objects.get(id=messagepoll_id)
     messagepoll.read = True
