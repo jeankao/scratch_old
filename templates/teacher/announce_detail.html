@@ -5,7 +5,7 @@
         <h1>班級名稱：{{classroom.name}}</h1>
         <table>
             <tr>
-                <td>時間</td><td>{{message.time}}</td>
+                <td>時間</td><td>{{message.time| date:"DATE_FORMAT"}}</td>
             </tr>
             <tr>
                 <td>主旨</td> <td>{{message.title}}</td>

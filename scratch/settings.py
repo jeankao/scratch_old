@@ -108,6 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
+DATE_FORMAT = "Y-m-d H:i:s"
 
 LANGUAGE_CODE = 'en-us'
 
@@ -115,7 +116,7 @@ TIME_ZONE = 'Asia/Taipei'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 
@@ -133,4 +134,5 @@ import os
 if os.getenv('DATABASE_URL') is not None:
     import dj_database_url
     DATABASES['default'] = dj_database_url.config()
+
 
