@@ -40,7 +40,6 @@ article {
 <script>
 
 $(function () {
-    $(document).scrollTop(0);
     $('.block article').hide();
     var defaultTab = $('ul.tabs li:first');
     var defaultArticle = $('.block article:first');
@@ -51,6 +50,7 @@ $(function () {
                 defaultArticle = $(location.hash);
             }
         });
+        location.hash = ""
     }
     $(defaultTab).addClass('active');
     $(defaultArticle).show();
@@ -64,6 +64,7 @@ $(function () {
     });
 });
 //# sourceURL=pen.js
+
 </script>
 {% endblock %}
 {% block content %}
@@ -163,3 +164,5 @@ $(function () {
   </section>
 </section>
 {% endblock %}
+
+
