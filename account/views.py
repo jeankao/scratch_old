@@ -690,3 +690,11 @@ def manual_heroku(request):
         log = Log(user_id=0, event='查看Heroku架站')
         log.save()        
     return render_to_response('account/manual_heroku.html',  context_instance=RequestContext(request))	
+
+# 顯示好文
+def article(request):
+    # 記錄系統事件
+    if is_event_open() :       
+        log = Log(user_id=0, event='查看好文分享')
+        log.save()        
+    return render_to_response('account/article.html',  context_instance=RequestContext(request))	

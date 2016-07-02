@@ -51,10 +51,13 @@ urlpatterns = [
     url(r'^visitor/$', views.VisitorListView.as_view()),    
     url(r'^visitorlog/(?P<visitor_id>\d+)/$', views.VisitorLogListView.as_view()),       
     
-    #訪客
+    #手冊
     url(r'^manual/student/$', views.manual_student),    
     url(r'^manual/teacher/$', views.manual_teacher),   
     url(r'^manual/windows/$', views.manual_windows),   
     url(r'^manual/ubuntu/$', views.manual_ubuntu),   
-    url(r'^manual/heroku/$', views.manual_heroku),       
+    url(r'^manual/heroku/$', views.manual_heroku),      
+    
+    #好文分享
+    url(r'^article/$', views.article),    
 ]
