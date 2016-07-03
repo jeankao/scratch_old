@@ -19,10 +19,6 @@ class Profile(models.Model):
 	creative = models.IntegerField(default=0)
 	# 大頭貼等級
 	avatar = models.IntegerField(default=0)
-	# 事件
-	event_open = models.BooleanField(default=False)
-	# 課程事件
-	event_video_open = models.BooleanField(default=False)
 	# 訪客人次
 	visitor_count = models.IntegerField(default=0)
 	# 開站時間

@@ -11,7 +11,7 @@
             <form action="" method="post">{% csrf_token %}
             作品編號：{{ form.number }}<a target=_blank href="/student/work_help"><img src="/static/images/help.png"></a><BR>
             心得感想：{{form.memo}}<BR>
-            <input type="submit" value="Submit" />
+            <input type="submit" value="送出" />
             </form>
             {% endif %}
         {% else %}
@@ -20,7 +20,7 @@
             <form action="" method="post">{% csrf_token %}
             作品編號：{{ form.number }}<a target=_blank href="/student/work_help"><img src="/static/images/help.png"></a><BR>
             心得感想：{{form.memo}}<BR>
-            <input type="submit" value="Submit" />
+            <input type="submit" value="送出" />
             </form>
         {% endif %}
         <br>

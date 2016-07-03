@@ -72,8 +72,12 @@ Licence URI: http://www.os-templates.com/template-terms
 
             {% if request.user|has_group:"teacher" %} 	
 		<li><a href="/teacher/classroom"><img  width=16 src="/static/images/icon_teacher.png">教師</a></li>
-		<li><a href="/account/event/0"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>		
-			{% endif %}		
+			{% endif %}
+			{% if user.id == 1 %}
+			<li><a href="/account/event/admin"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>		
+			{% elif user|event %}
+		<li><a href="/account/event/{{user.id}}"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>		
+            {% endif %}
 	    {% endif %}
 		<li><a href="/account/visitor"><img src="/static/images/icon_visitor.png">訪客</a></li>	    
       </ul>

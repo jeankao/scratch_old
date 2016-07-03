@@ -10,7 +10,7 @@
         {% for log in logs %}
             <tr>
                 <td><a href="{{log.url}}">{{log.message}}</a></td>
-				<td>{{log.publish}}</td>
+				<td>{{log.publish| date:"DATE_FORMAT"}}</td>
             </tr>
         {% endfor %}
         </table>

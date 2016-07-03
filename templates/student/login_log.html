@@ -5,7 +5,7 @@
 <h1>{{visitorlogs.0.user_id|name}}的登入記錄</h1>
 <table>
 {% for visitorlog in visitorlogs %}
-<Tr><td>{{forloop.counter|add:page}}</td><td>{{visitorlog.time}}--{{visitorlog.time|date:"l"}}</td></Tr>
+<Tr><td>{{forloop.counter|add:page}}</td><td>{{visitorlog.time| date:"DATE_FORMAT"}}--{{visitorlog.time|date:"l"}}</td></Tr>
 {% endfor %}
 </table>
 {% include "pagination.html" with page=page_obj %}     

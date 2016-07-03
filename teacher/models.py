@@ -18,6 +18,10 @@ class Classroom(models.Model):
     group_show_open = models.BooleanField(default=False)
     # 組別人數
     group_show_size = models.IntegerField(default=2)    
+	# 事件
+    event_open = models.BooleanField(default=False)
+	# 課程事件
+    event_video_open = models.BooleanField(default=True)    
     
     @property
     def teacher(self):

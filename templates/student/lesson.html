@@ -43,7 +43,6 @@ article {
 <script src='//assets.codepen.io/assets/common/stopExecutionOnTimeout.js?t=1'></script>
 <!-- <script src='/static/js/youtube.util.js'></script> -->
 <script>
-
 function lesson_log(tabname) {
     $.post('/student/lesson/log/{{lesson}}/',
         {'tabname': tabname},
@@ -53,7 +52,6 @@ function lesson_log(tabname) {
 var playerPool = [];
 var tabName = [];
 var activePlayer = null;
-
 $(function () {
     $(document).scrollTop(0);
     $('.block article').hide();
@@ -61,7 +59,7 @@ $(function () {
     var defaultArticle = $('.block article:first');
     var searchTab = (location.hash && $(location.hash));
     $('ul.tabs li a').each(function(index, element){
-        //tabName[$(element).attr('href').substr(1)] = $(element).text();
+        tabName[$(element).attr('href').substr(1)] = $(element).text();
         if(searchTab && $(element).attr('href') === location.hash) {
             defaultTab = $(element).parent();
             defaultArticle = $(location.hash);
@@ -83,6 +81,13 @@ $(function () {
         lesson_log(activeTab.text());
         return false;
     });
+    $(window).on('beforeunload', function(){
+        if (activePlayer) {
+            var currTime = secToTime(activePlayer.getCurrentTime().toFixed());
+            lesson_log(activePlayer.tabName+" | PAUSE["+currTime+"]");
+        }
+    });
+
     {% if lesson == "1" %}
     //------------------------------------------------------------------------
     // Player
@@ -94,14 +99,14 @@ $(function () {
         sPlayer.loadVideoById({'videoId': videoID, 'startSeconds':time[0], 'endSeconds':time[1]});
 	});
     {% endif %}
+    //------------------------------------------------------------------------
+    // Load YouTube API library
+    var tag = document.createElement('script');
+    tag.id = 'iframe-demo';
+    tag.src = 'https://www.youtube.com/iframe_api';
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 });
-//# sourceURL=pen.js
-var tag = document.createElement('script');
-tag.id = 'iframe-demo';
-tag.src = 'https://www.youtube.com/iframe_api';
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
 function onYouTubeIframeAPIReady() {
     $('ul.tabs li a').each(function(index, element){
         tabName[$(element).attr('href').substr(1)] = $(element).text();
@@ -133,6 +138,8 @@ function onPlayerStateChange(event) {
             lesson_log(activePlayer.tabName+" | PAUSE["+currTime+"]"); break;
     }
 }
+//# sourceURL=pen.js
+
 </script>
 {% endblock %}
 {% block content %}

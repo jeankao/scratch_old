@@ -25,19 +25,13 @@ urlpatterns = [
     url(r'^realname/(?P<user_id>\d+)/$', views.adminrealname),    
     url(r'^realname/$', views.realname, name='realname'), 
     #修改學校
-    url(r'^school/(?P<user_id>\d+)/$', views.adminschool),     
+    url(r'^school/$', views.adminschool),     
     #修改信箱
-    url(r'^email/(?P<user_id>\d+)/$', views.adminemail),    
+    url(r'^email/$', views.adminemail),    
     #積分記錄
     url(r'^log/(?P<kind>\d+)/(?P<user_id>\d+)/$', views.LogListView.as_view()),	    
     #設定教師
     url(r'^teacher/make/$', views.make, name='make'),    
-    #系統事件記錄
-    url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),
-    url(r'^event/clear/$', views.clear),
-    url(r'^event/excel/$', views.event_excel),
-    url(r'^event/make/$', views.event_make),    
-    url(r'^event/video/make/$', views.event_video_make), 
     # 列所出有圖像
     url(r'^avatar/$', views.avatar),  
     # 讀取訊息
@@ -60,4 +54,9 @@ urlpatterns = [
     
     #好文分享
     url(r'^article/$', views.article),    
+
+    #系統事件記錄
+    url(r'^event/(?P<user_id>\d+)/$', views.EventListView.as_view()),
+    url(r'^event/admin/$', views.EventAdminListView.as_view()),
+    url(r'^event/admin/classroom/(?P<classroom_id>\d+)/$', views.EventAdminClassroomListView.as_view()),    
 ]

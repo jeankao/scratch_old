@@ -14,6 +14,8 @@
     <p class="date">
       Published {{ post.publish}} by {{ post.id|show_member }}
     </p>
+  {% empty %}
+  目前藝廊尚無作品
   {% endfor %}
  {% include "pagination.html" with page=page_obj %}  
 {% endblock %}

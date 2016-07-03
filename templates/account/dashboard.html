@@ -6,7 +6,7 @@
 {% block content %}
   <h1>訊息</h1>
   <Table>
-{% for messagepoll, message in messages %}<Tr><td><img src="/static/images/scratch1.gif"> {{ message.time}}
+{% for messagepoll, message in messages %}<Tr><td><img src="/static/images/scratch1.gif"> {{ message.time| date:"DATE_FORMAT"}}
 <a href="/account/message/{{ messagepoll.id }}">
 {% if message.title|img == "line"%}
 <img src="/static/images/line.png">

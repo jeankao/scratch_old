@@ -91,3 +91,16 @@ def is_classmate(user_id, request):
             if len(members) > 0: 
                 return True
     return False
+    
+@register.filter(name='td_range')
+def td_range(num, val):
+    return range(val - (num % val))
+
+@register.filter(name='event')
+def event(user):
+    enrolls = Enroll.objects.filter(student_id=user.id)
+    for enroll in enrolls:
+        classroom = Classroom.objects.get(id=enroll.classroom_id)
+        if classroom.event_open or classroom.event_video_open:
+            return True
+    return False

@@ -41,5 +41,12 @@ urlpatterns = [
     url(r'^announce/(?P<classroom_id>\d+)/$', login_required(AnnounceListView.as_view()), name='announce-list'),
     url(r'^announce/add/(?P<classroom_id>\d+)/$', login_required(AnnounceCreateView.as_view()), name='announce-add'),  
     url(r'^announce/detail/(?P<message_id>\d+)/$', views.announce_detail),
+
+    #系統事件記錄
+    url(r'^event/(?P<classroom_id>\d+)/(?P<user_id>\d+)/$', views.EventListView.as_view()),
+    url(r'^event/clear/(?P<classroom_id>\d+)/$', views.clear),
+    url(r'^event/excel/(?P<classroom_id>\d+)/$', views.event_excel),
+    url(r'^event/make/$', views.event_make),    
+    url(r'^event/video/make/$', views.event_video_make),
 	
 ]

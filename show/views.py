@@ -33,8 +33,14 @@ def is_teacher(user, classroom_id):
     return user.groups.filter(name='teacher').exists() and Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists()
 
 # 判斷是否開啟事件記錄
-def is_event_open():
-    return Profile.objects.get(user=User.objects.get(id=1)).event_open
+def is_event_open(request):
+        enrolls = Enroll.objects.filter(student_id=request.user.id)
+        for enroll in enrolls:
+            classroom = Classroom.objects.get(id=enroll.classroom_id)
+            if classroom.event_open:
+                return True
+        return False
+
 
 # 所有組別
 def group(request, classroom_id):
@@ -61,7 +67,7 @@ def group(request, classroom_id):
 	    nogroup = sorted(nogroup, key=getKey)            
             
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event=u'查看創意秀組別<'+classroom.name+'>')
             log.save()              
         return render_to_response('show/group.html', {'nogroup': nogroup, 'group_show_open':group_show_open, 'teacher':is_teacher(request.user, classroom_id), 'student_groups':student_groups, 'classroom_id':classroom_id, 'student_group':student_group}, context_instance=RequestContext(request))
@@ -80,7 +86,7 @@ def group_add(request, classroom_id):
                     review.save()
                     
                 # 記錄系統事件
-                if is_event_open() :                 
+                if is_event_open(request) :                 
                     log = Log(user_id=request.user.id, event=u'新增創意秀組別<'+group.name+'><'+classroom_name+'>')
                     log.save()                      
                 return redirect('/show/group/'+classroom_id)
@@ -98,7 +104,7 @@ def group_size(request, classroom_id):
                 classroom.save()
                 
                 # 記錄系統事
-                if is_event_open() :                  
+                if is_event_open(request) :                  
                     log = Log(user_id=request.user.id, event=u'設定創意秀組別人數<'+classroom.name+'><'+str(form.cleaned_data['group_show_size'])+'>')
                     log.save()        
         
@@ -115,7 +121,7 @@ def group_enroll(request, classroom_id,  group_id):
         enroll = Enroll.objects.filter(student_id=request.user.id, classroom_id=classroom_id)
         enroll.update(group_show=group_id)
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event=u'加入創意秀組別<'+group_name+'><'+classroom_name+'>')
             log.save()                      
         return redirect('/show/group/'+classroom_id)
@@ -126,7 +132,7 @@ def group_delete(request, group_id, classroom_id):
         group_name = ShowGroup(id=group_id).name    
         group = ShowGroup.objects.get(id=group_id)
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event=u'刪除創意秀組別<'+group_name+'><'+classroom_name+'>')
             log.save()     
         group.delete()
@@ -139,14 +145,14 @@ def group_open(request, classroom_id, action):
         classroom.group_show_open=True
         classroom.save()
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event=u'開放創意秀選組<'+classroom.name+'>')
             log.save()         
     else :
         classroom.group_show_open=False
         classroom.save()
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event=u'關閉創意秀選組<'+classroom.name+'>')
             log.save()          
     return redirect('/show/group/'+classroom_id)  	
@@ -196,7 +202,7 @@ class ShowUpdateView(UpdateView):
             obj.save()
         
             # 記錄系統事件
-            if is_event_open() :             
+            if is_event_open(self.request) :             
                 log = Log(user_id=self.request.user.id, event=u'上傳創意秀<'+obj.name+'>')
                 log.save()
             return redirect('/show/group/'+self.kwargs['classroom_id'])
@@ -260,7 +266,7 @@ class ReviewUpdateView(UpdateView):
         obj.done = True
         obj.save()
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(self.request) :         
             log = Log(user_id=self.request.user.id, event=u'評分創意秀<'+show.name+'>')
             log.save()        
         return redirect('/show/detail/'+self.kwargs['show_id'])
@@ -272,7 +278,7 @@ class ReviewListView(ListView):
     def get_queryset(self):
         show = ShowGroup.objects.get(id=self.kwargs['show_id'])        
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(self.request) :         
             log = Log(user_id=self.request.user.id, event=u'查看創意秀所有評分<'+show.name+'>')
             log.save()  
         return ShowReview.objects.filter(show_id=self.kwargs['show_id'])  		
@@ -322,7 +328,7 @@ class RankListView(ListView):
             lists.append([show, students, score, reviews.count(), self.kwargs['rank_id']])
             lists= sorted(lists, key=getKey, reverse=True)
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(self.request) :         
             log = Log(user_id=self.request.user.id, event=u'查看創意秀排行榜<'+self.kwargs['rank_id']+'>')
             log.save()  
         return lists
@@ -351,7 +357,7 @@ class TeacherListView(ListView):
                     lists[enroll.id].append([enroll, review, show, members])
 		lists = OrderedDict(sorted(lists.items(), key=lambda x: x[1][0][0].seat))
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(self.request) :         
             log = Log(user_id=self.request.user.id, event=u'查看創意秀評分狀況<'+classroom_name+'>')
             log.save()  
 		
@@ -370,7 +376,7 @@ class GalleryListView(ListView):
             log = Log(user_id=self.request.user.id, event=u'查看藝廊')
         else :
             log = Log(user_id=0,event=u'查看藝廊')
-        if is_event_open() :             
+        if is_event_open(self.request) :             
             log.save() 
         
         return ShowGroup.objects.filter(open=True).order_by('-publish')
@@ -410,13 +416,13 @@ def make(request):
             if action == 'open':
                 show.open = True
                 # 記錄系統事件
-                if is_event_open() :                 
+                if is_event_open(request) :                 
                     log = Log(user_id=request.user.id, event=u'藝廊上架<'+show.name+'>')
                     log.save()                 
             else:
                 show.open = False		
                 # 記錄系統事件
-                if is_event_open() :                 
+                if is_event_open(request) :                 
                     log = Log(user_id=request.user.id, event=u'藝廊下架<'+show.name+'>')
                     log.save()                          
             show.save()
@@ -441,10 +447,8 @@ def upload_pic(request, show_id):
                 image_file = StringIO.StringIO(image_field.read())
                 image = Image.open(image_file)
                 image = image.resize((800, 600), Image.ANTIALIAS)
-
                 image_file = StringIO.StringIO()
                 image.save(image_file, 'JPEG', quality=90)
-
                 image_field.file = image_file
                 m.save()
             except ObjectDoesNotExist:
@@ -475,7 +479,7 @@ def upload_pic(request, show_id):
             pass
         classroom_id = Enroll.objects.filter(student_id=request.user.id).order_by('-id')[0].classroom.id
         # 記錄系統事件
-        if is_event_open() :         
+        if is_event_open(request) :         
             log = Log(user_id=request.user.id, event='上傳Dr Scratch分析圖成功')
             log.save()             
         return redirect('/show/detail/'+show_id+'/#drscratch')
@@ -489,7 +493,7 @@ def upload_pic(request, show_id):
 
 def excel(request, classroom_id):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=request.user.id, event=u'下載創意秀到Excel')
         log.save()        
 

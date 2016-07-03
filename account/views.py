@@ -8,6 +8,8 @@ from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, 
 from django.contrib.auth.models import User
 from account.models import Profile, PointHistory, Log, Message, MessagePoll, Visitor, VisitorLog
 from student.models import Enroll, Work, Assistant
+from teacher.models import Classroom
+from certificate.models import Certificate
 from django.core.exceptions import ObjectDoesNotExist
 from account.templatetags import tag 
 from django.views.generic import ListView, CreateView
@@ -26,13 +28,31 @@ from datetime import datetime
 from django.utils import timezone
 
 # 判斷是否開啟事件記錄
-def is_event_open():
-        return Profile.objects.get(user=User.objects.get(id=1)).event_open
+def is_event_open(request):
+        enrolls = Enroll.objects.filter(student_id=request.user.id)
+        for enroll in enrolls:
+            classroom = Classroom.objects.get(id=enroll.classroom_id)
+            if classroom.event_open:
+                return True
+        return False
 
 # 判斷是否開啟課程事件記錄
-def is_event_video_open():
-        return Profile.objects.get(user=User.objects.get(id=1)).event_video_open
-
+def is_event_video_open(request):
+        enrolls = Enroll.objects.filter(student_id=request.user.id)
+        for enroll in enrolls:
+            classroom = Classroom.objects.get(id=enroll.classroom_id)
+            if classroom.event_video_open:
+                return True
+        return False
+        
+# 判斷是否為任教學生
+def is_student(user_id, request):
+    classrooms = Classroom.objects.filter(teacher_id=request.user.id)
+    for classroom in classrooms:
+        if Enroll.objects.filter(classroom_id=classroom.id, student_id=user_id).exists(): 
+            return True
+    return False
+    
 # 判斷是否為本班同學
 def is_classmate(user, classroom_id):
     return Enroll.objects.filter(student_id=user.id, classroom_id=classroom_id).exists()
@@ -73,7 +93,7 @@ def user_login(request):
                                         # 登入成功，導到大廳
                                         login(request, user)
                                         # 記錄系統事件
-                                        if is_event_open() :
+                                        if is_event_open(request) :
                                             log = Log(user_id=request.user.id, event='登入系統')
                                             log.save()
                                         # 記錄訪客資訊
@@ -101,7 +121,7 @@ def user_login(request):
                                         message = "Your user is inactive"
                         else:
                             # 記錄系統事件
-                            if is_event_open() :                            
+                            if is_event_open(request) :                            
                                 log = Log(user_id=0, event='登入失敗')
                                 log.save()                                
                             message = "無效的帳號或密碼!"
@@ -112,7 +132,7 @@ def user_login(request):
 # 記錄登出
 def suss_logout(request, user_id):
     # 記錄系統事件
-    if is_event_open() :    
+    if is_event_open(request) :    
         log = Log(user_id=user_id, event='登出系統')
         log.save()    
     return redirect('/account/login/')
@@ -125,7 +145,7 @@ class MessageListView(ListView):
 
     def get_queryset(self):    
         # 記錄系統事件
-        if is_event_open() :           
+        if is_event_open(self.request) :           
             log = Log(user_id=self.request.user.id, event='查看訊息')
             log.save()          
         query = []
@@ -149,7 +169,7 @@ def register(request):
             profile = Profile(user=new_user)
             profile.save()
             # 記錄系統事件
-            if is_event_open() :   
+            if is_event_open(request) :   
                 log = Log(user_id=new_user.id, event='註冊帳號成功')
                 log.save()                
         
@@ -181,6 +201,11 @@ def profile(request, user_id):
         profile = Profile(user=user)
         profile.save()
 
+    try:
+        hour_of_code = Certificate.objects.get(student_id=user_id)
+    except ObjectDoesNotExist:
+        hour_of_code = None
+
     del lesson_list[:]
     reset()
     works = Work.objects.filter(user_id=user_id)
@@ -196,10 +221,10 @@ def profile(request, user_id):
     # 計算積分    
     credit = profile.work + profile.assistant + profile.debug + profile.creative
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=request.user.id, event='查看個人檔案')
         log.save()        
-    return render_to_response('account/profile.html',{'works':works, 'lesson_list':lesson_list, 'enrolls':enrolls, 'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
+    return render_to_response('account/profile.html',{'hour_of_code':hour_of_code, 'works':works, 'lesson_list':lesson_list, 'enrolls':enrolls, 'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
 
 # 修改密碼
 def password(request, user_id):
@@ -210,7 +235,7 @@ def password(request, user_id):
             user.set_password(request.POST['password'])
             user.save()
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=request.user.id, event=u'修改<'+user.first_name+u'>密碼成功')
                 log.save()                
             return redirect('homepage')
@@ -229,7 +254,7 @@ def adminrealname(request, user_id):
             user.first_name =form.cleaned_data['first_name']
             user.save()
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
                 log.save()                
             return redirect('/account/userlist/')
@@ -248,7 +273,7 @@ def realname(request):
             user.first_name =form.cleaned_data['first_name']
             user.save()
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=request.user.id, event=u'修改姓名<'+user.first_name+'>')
                 log.save()                
             return redirect('/account/profile/'+str(request.user.id))
@@ -259,7 +284,7 @@ def realname(request):
     return render_to_response('account/realname.html',{'form': form}, context_instance=RequestContext(request))
 
 # 修改學校名稱
-def adminschool(request, user_id):
+def adminschool(request):
     if request.method == 'POST':
         form = SchoolForm(request.POST)
         if form.is_valid():
@@ -267,7 +292,7 @@ def adminschool(request, user_id):
             user.last_name =form.cleaned_data['last_name']
             user.save()
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=request.user.id, event=u'修改學校名稱<'+user.first_name+'>')
                 log.save()                
             return redirect('/account/profile/'+str(request.user.id))
@@ -278,7 +303,7 @@ def adminschool(request, user_id):
     return render_to_response('account/school.html',{'form': form}, context_instance=RequestContext(request))
     
 # 修改信箱
-def adminemail(request, user_id):
+def adminemail(request):
     if request.method == 'POST':
         form = EmailForm(request.POST)
         if form.is_valid():
@@ -286,7 +311,7 @@ def adminemail(request, user_id):
             user.email =form.cleaned_data['email']
             user.save()
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=request.user.id, event=u'修改信箱<'+user.first_name+'>')
                 log.save()                
             return redirect('/account/profile/'+str(request.user.id))
@@ -314,7 +339,7 @@ class LogListView(ListView):
             log = Log(user_id=self.kwargs['user_id'], event='查看積分--創意秀')
         else :
             log = Log(user_id=self.kwargs['user_id'], event='查看全部積分')                        
-        if is_event_open() :               
+        if is_event_open(self.request) :               
             log.save()                
         if not self.kwargs['kind'] == "0" :
             queryset = PointHistory.objects.filter(user_id=self.kwargs['user_id'],kind=self.kwargs['kind']).order_by('-id')
@@ -336,7 +361,7 @@ class UserListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        if is_event_open() :           
+        if is_event_open(self.request) :           
             log = Log(user_id=1, event='查看帳號')
             log.save()         
         queryset = User.objects.all().order_by('-id')
@@ -370,7 +395,7 @@ def make(request):
             messagepoll.save()    
         else : 
             # 記錄系統事件
-            if is_event_open() :               
+            if is_event_open(request) :               
                 log = Log(user_id=1, event=u'取消教師<'+user.first_name+'>')
                 log.save()              
             group.user_set.remove(user)  
@@ -386,140 +411,6 @@ def make(request):
         return JsonResponse({'status':'ok'}, safe=False)
     else:
         return JsonResponse({'status':user.first_name}, safe=False)        
-        
-# 記錄系統事件
-class EventListView(ListView):
-    context_object_name = 'events'
-    paginate_by = 50
-    template_name = 'account/event_list.html'
-
-    def get_queryset(self):    
-        # 記錄系統事件
-        if is_event_open() :           
-            log = Log(user_id=self.request.user.id, event='查看事件')
-            log.save()       
-        if self.kwargs['user_id'] == "0":
-            if self.request.GET.get('q') != None:
-                queryset = Log.objects.filter(event__icontains=self.request.GET.get('q')).order_by('-id')
-            else :
-                queryset = Log.objects.all().order_by('-id')
-        else :
-            if self.request.GET.get('q') != None:
-                queryset = Log.objects.filter(user_id=self.kwargs['user_id'],event__icontains=self.request.GET.get('q')).order_by('-id')
-            else : 
-                queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
-        return queryset
-        
-
-    def get_context_data(self, **kwargs):
-        context = super(EventListView, self).get_context_data(**kwargs)
-        q = self.request.GET.get('q')
-        context.update({'q': q})
-        context['is_event_open'] = Profile.objects.get(user=User.objects.get(id=1)).event_open
-        context['is_event_video_open'] = Profile.objects.get(user=User.objects.get(id=1)).event_video_open        
-        return context	
-	
-# 下載檔案
-def download(request, filename):
-    #down_file = File.objects.get(name = filename)
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DOWNLOAD_URL = BASE_DIR+"/download/"
-    file_path = DOWNLOAD_URL + filename
-    file_name = filename
-    fp = open(file_path, 'rb')
-    response = HttpResponse(fp.read())
-    fp.close()
-    mime = MimeTypes()
-    type, encoding = mime.guess_type(file_name)
-    if type is None:
-        type = 'application/octet-stream'
-    response['Content-Type'] = type
-    response['Content-Length'] = str(os.stat(file_path).st_size)
-    if encoding is not None:
-        response['Content-Encoding'] = encoding
-    if u'WebKit' in request.META['HTTP_USER_AGENT']:
-        filename_header = 'filename=%s' % file_name.encode('utf-8')
-    elif u'MSIE' in request.META['HTTP_USER_AGENT']:
-        filename_header = ''
-    else:
-        filename_header = 'filename*=UTF-8\'\'%s' % urllib.quote(file_name.encode('utf-8'))
-    response['Content-Disposition'] = 'attachment; ' + filename_header
-    # 記錄系統事件
-    if is_event_open() :       
-        log = Log(user_id=request.user.id, event=u'下載檔案<'+filename+'>')
-        log.save()     
-    return response
-
-def avatar(request):
-    profile = Profile.objects.get(user = request.user)
-    # 記錄系統事件
-    if is_event_open() :       
-        log = Log(user_id=request.user.id, event=u'查看個人圖像')
-        log.save()        
-    return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
-    
-def clear(request):
-    Log.objects.all().delete()
-    # 記錄系統事件
-    if is_event_open() :       
-        log = Log(user_id=request.user.id, event=u'清除所有事件')
-        log.save()            
-    return redirect("/account/event/0")
-    
-def event_excel(request):
-    # 記錄系統事件
-    if is_event_open() :       
-        log = Log(user_id=request.user.id, event=u'下載事件到Excel')
-        log.save()        
-    output = StringIO.StringIO()
-    workbook = xlsxwriter.Workbook(output)    
-    #workbook = xlsxwriter.Workbook('hello.xlsx')
-    worksheet = workbook.add_worksheet()
-    date_format = workbook.add_format({'num_format': 'dd/mm/yy hh:mm:ss'})
-    events = Log.objects.all().order_by('-id')
-    index = 1
-    for event in events:
-        if event.user_id > 0 :
-            worksheet.write('A'+str(index), event.user.first_name)
-        else: 
-            worksheet.write('A'+str(index), u'匿名')
-        worksheet.write('B'+str(index), event.event)
-        worksheet.write('C'+str(index), str(localtime(event.publish)))
-        index = index + 1
-
-    workbook.close()
-    # xlsx_data contains the Excel file
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=Report'+str(datetime.datetime.now().date())+'.xlsx'
-    xlsx_data = output.getvalue()
-    response.write(xlsx_data)
-    return response
-
-def event_make(request):
-    action = request.POST.get('action')
-    if action :
-            profile = Profile.objects.get(user=User.objects.get(id=1))
-            if action == 'open':
-                profile.event_open = True
-            else :
-                profile.event_open = False
-            profile.save()
-            return JsonResponse({'status':'ok'}, safe=False)
-    else:
-            return JsonResponse({'status':'ko'}, safe=False)
-     
-def event_video_make(request):
-    action = request.POST.get('action')
-    if action :
-            profile = Profile.objects.get(user=User.objects.get(id=1))
-            if action == 'open':
-                profile.event_video_open = True
-            else :
-                profile.event_video_open = False
-            profile.save()
-            return JsonResponse({'status':'ok'}, safe=False)
-    else:
-            return JsonResponse({'status':'ko'}, safe=False)
 
 def message(request, messagepoll_id):
     messagepoll = MessagePoll.objects.get(id=messagepoll_id)
@@ -537,7 +428,7 @@ class LineListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        if is_event_open() :    
+        if is_event_open(self.request) :    
             log = Log(user_id=self.request.user.id, event='查看所有私訊')
             log.save()        
         queryset = Message.objects.filter(author_id=self.request.user.id, classroom_id=0-int(self.kwargs['classroom_id'])).order_by("-id")
@@ -551,7 +442,7 @@ class LineClassListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        if is_event_open() :    
+        if is_event_open(self.request) :    
             log = Log(user_id=self.request.user.id, event='列出同學以私訊')
             log.save()        
         queryset = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by("seat")
@@ -583,7 +474,7 @@ class LineCreateView(CreateView):
         messagepoll = MessagePoll(message_id=self.object.id, reader_id=self.kwargs['user_id'], classroom_id=0-int(self.kwargs['classroom_id']))
         messagepoll.save()
         # 記錄系統事件
-        if is_event_open() :            
+        if is_event_open(self.request) :            
             log = Log(user_id=self.request.user.id, event=u'新增私訊<'+self.object.title+'>')
             log.save()                
         return redirect("/account/line/"+self.kwargs['classroom_id'])       
@@ -620,7 +511,7 @@ class VisitorListView(ListView):
     
     def get_queryset(self):
         # 記錄系統事件
-        if is_event_open() :
+        if is_event_open(self.request) :
             if not self.request.user.is_authenticated():
                 user_id = 0
             else :
@@ -640,7 +531,7 @@ class VisitorLogListView(ListView):
     def get_queryset(self):
         # 記錄系統事件
         visitor = Visitor.objects.get(id=self.kwargs['visitor_id'])
-        if is_event_open() :    
+        if is_event_open(self.request) :    
             log = Log(user_id=self.request.user.id, event='查看單日訪客<'+str(visitor.date)+'>')
             log.save()        
         queryset = VisitorLog.objects.filter(visitor_id=self.kwargs['visitor_id']).order_by('-id')
@@ -654,7 +545,7 @@ class VisitorLogListView(ListView):
 # 顯示學生手冊
 def manual_student(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看學生手冊')
         log.save()        
     return render_to_response('account/manual_student.html',  context_instance=RequestContext(request))	
@@ -662,7 +553,7 @@ def manual_student(request):
 # 顯示教師手冊
 def manual_teacher(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看教師手冊')
         log.save()        
     return render_to_response('account/manual_teacher.html',  context_instance=RequestContext(request))	
@@ -670,7 +561,7 @@ def manual_teacher(request):
 # 顯示Windows架站
 def manual_windows(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看Windows架站')
         log.save()        
     return render_to_response('account/manual_windows.html',  context_instance=RequestContext(request))	
@@ -678,7 +569,7 @@ def manual_windows(request):
 # 顯示Ubuntu架站
 def manual_ubuntu(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看ubuntu架站')
         log.save()        
     return render_to_response('account/manual_ubuntu.html',  context_instance=RequestContext(request))	
@@ -686,7 +577,7 @@ def manual_ubuntu(request):
 # 顯示Heroku架站
 def manual_heroku(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看Heroku架站')
         log.save()        
     return render_to_response('account/manual_heroku.html',  context_instance=RequestContext(request))	
@@ -694,7 +585,140 @@ def manual_heroku(request):
 # 顯示好文
 def article(request):
     # 記錄系統事件
-    if is_event_open() :       
+    if is_event_open(request) :       
         log = Log(user_id=0, event='查看好文分享')
         log.save()        
     return render_to_response('account/article.html',  context_instance=RequestContext(request))	
+
+# 下載檔案
+def download(request, filename):
+    #down_file = File.objects.get(name = filename)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DOWNLOAD_URL = BASE_DIR+"/download/"
+    file_path = DOWNLOAD_URL + filename
+    file_name = filename
+    fp = open(file_path, 'rb')
+    response = HttpResponse(fp.read())
+    fp.close()
+    mime = MimeTypes()
+    type, encoding = mime.guess_type(file_name)
+    if type is None:
+        type = 'application/octet-stream'
+    response['Content-Type'] = type
+    response['Content-Length'] = str(os.stat(file_path).st_size)
+    if encoding is not None:
+        response['Content-Encoding'] = encoding
+    if u'WebKit' in request.META['HTTP_USER_AGENT']:
+        filename_header = 'filename=%s' % file_name.encode('utf-8')
+    elif u'MSIE' in request.META['HTTP_USER_AGENT']:
+        filename_header = ''
+    else:
+        filename_header = 'filename*=UTF-8\'\'%s' % urllib.quote(file_name.encode('utf-8'))
+    response['Content-Disposition'] = 'attachment; ' + filename_header
+    # 記錄系統事件
+    if is_event_open(request) :       
+        log = Log(user_id=request.user.id, event=u'下載檔案<'+filename+'>')
+        log.save()     
+    return response
+
+def avatar(request):
+    profile = Profile.objects.get(user = request.user)
+    # 記錄系統事件
+    if is_event_open(request) :       
+        log = Log(user_id=request.user.id, event=u'查看個人圖像')
+        log.save()        
+    return render_to_response('account/avatar.html', {'avatar':profile.avatar}, context_instance=RequestContext(request))
+    
+# 記錄系統事件
+class EventListView(ListView):
+    context_object_name = 'events'
+    paginate_by = 50
+    template_name = 'account/event_list.html'
+
+    def get_queryset(self):    
+        user = User.objects.get(id=self.kwargs['user_id'])
+        # 記錄系統事件
+        if is_event_open(self.request) :           
+            log = Log(user_id=self.request.user.id, event=u'查看個人事件<'+user.first_name+'>')
+            log.save()       
+        if self.request.GET.get('q') != None:
+            queryset = Log.objects.filter(user_id=self.kwargs['user_id'], event__icontains=self.request.GET.get('q')).order_by('-id')
+        else :
+            queryset = Log.objects.filter(user_id=self.kwargs['user_id']).order_by('-id')
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super(EventListView, self).get_context_data(**kwargs)
+        q = self.request.GET.get('q')
+        context.update({'q': q})
+        return context	
+        
+    # 限本人 
+    def render_to_response(self, context):
+        if not is_student(self.kwargs['user_id'], self.request) and not self.request.user.id == int(self.kwargs['user_id']):
+            return redirect('/')
+        return super(EventListView, self).render_to_response(context)      
+
+# 記錄系統事件
+class EventAdminListView(ListView):
+    context_object_name = 'events'
+    paginate_by = 50
+    template_name = 'account/event_admin_list.html'
+
+    def get_queryset(self):    
+        # 記錄系統事件
+        log = Log(user_id=1, event=u'管理員查看系統事件')
+        log.save()       
+        if self.request.GET.get('q') != None:
+            queryset = Log.objects.filter(event__icontains=self.request.GET.get('q')).order_by('-id')
+        else :
+            queryset = Log.objects.all().order_by('-id')
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super(EventAdminListView, self).get_context_data(**kwargs)
+        classrooms = Classroom.objects.all().order_by('-id')
+        context['classrooms'] = classrooms
+        q = self.request.GET.get('q')
+        context.update({'q': q})
+        return context	
+        
+    # 限管理員
+    def render_to_response(self, context):
+        if not self.request.user.id == 1 :
+            return redirect('/')
+        return super(EventAdminListView, self).render_to_response(context)      
+        
+# 記錄系統事件
+class EventAdminClassroomListView(ListView):
+    context_object_name = 'events'
+    paginate_by = 50
+    template_name = 'account/event_admin_classroom_list.html'
+
+    def get_queryset(self):    
+        # 記錄系統事件
+        classroom = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        log = Log(user_id=1, event=u'管理員查看班級事件<'+classroom.name+'>')
+        log.save()
+        users = []
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for enroll in enrolls:
+            if enroll.seat > 0 :
+                users.append(enroll.student_id)
+        if self.request.GET.get('q') != None:
+            queryset = Log.objects.filter(user_id__in=users, event__icontains=self.request.GET.get('q')).order_by('-id')
+        else :
+            queryset = Log.objects.filter(user_id__in=users).order_by('-id')
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super(EventAdminClassroomListView, self).get_context_data(**kwargs)
+        q = self.request.GET.get('q')
+        context.update({'q': q})
+        return context	
+        
+    # 限管理員
+    def render_to_response(self, context):
+        if not self.request.user.id == 1:
+            return redirect('/')
+        return super(EventAdminClassroomListView, self).render_to_response(context)     

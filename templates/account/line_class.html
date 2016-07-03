@@ -7,6 +7,11 @@
 <tr>
 {% for enroll in enrolls %}
     <td><a href="/account/line/add/{{enroll.classroom_id}}/{{enroll.student_id}}">({{enroll.seat}}){{enroll.student_id|name}}</a></td>
+    {% if forloop.last %}
+    {% for i in forloop.counter|td_range:5 %}
+    <td></td>    
+    {% endfor %}
+    {% endif %}
     {% if forloop.counter|divisibleby:5 and not forloop.last %}</tr><tr>{% endif %}
 {% endfor %}
 </tr>
