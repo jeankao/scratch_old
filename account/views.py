@@ -714,6 +714,8 @@ class EventAdminClassroomListView(ListView):
         context = super(EventAdminClassroomListView, self).get_context_data(**kwargs)
         q = self.request.GET.get('q')
         context.update({'q': q})
+        classroom = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['classroom'] = classroom        
         return context	
         
     # 限管理員
