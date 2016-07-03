@@ -224,6 +224,13 @@ def profile(request, user_id):
     if is_event_open(request) :       
         log = Log(user_id=request.user.id, event='查看個人檔案')
         log.save()        
+        
+    #檢查是否為教師或同班同學
+    user_enrolls = Enroll.objects.filter(student_id=request.user.id)
+    for enroll in user_enrolls:
+        user = User.objects.get(id=user_id)
+        if not is_classmate(user, enroll.classroom_id) and not request.user.id == 1:
+            return redirect("/")
     return render_to_response('account/profile.html',{'hour_of_code':hour_of_code, 'works':works, 'lesson_list':lesson_list, 'enrolls':enrolls, 'profile': profile,'user_id':user_id, 'credit':credit}, context_instance=RequestContext(request))	
 
 # 修改密碼

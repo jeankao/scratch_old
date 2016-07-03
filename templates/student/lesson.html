@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %} Teachers {% endblock %}
+{% load tag %}
 {% block head_ext %}
 <style class="cp-pen-styles">
 .wrapper {
@@ -169,12 +170,16 @@ function onPlayerStateChange(event) {
     </article>
     <article id="tab0">
         <BR>
+    {% if not "heroku" in request.get_host %}
 	<form action="/certificate/" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_image" type="file" class="" name="image">
                 </p>
                 <input type="submit" value="送出" />
             </form> 
+    {% else %}
+    Heroku不支援檔案上傳
+    {% endif %}
     </article>
     <article id="tab2">
         <BR>

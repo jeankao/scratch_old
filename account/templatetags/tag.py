@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from datetime import datetime
+from django.contrib.sites.shortcuts import get_current_site
 
 register = template.Library()
 
