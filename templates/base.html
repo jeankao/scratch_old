@@ -63,21 +63,15 @@ Licence URI: http://www.os-templates.com/template-terms
             <a href="/account/profile/{{user.id}}#tab3">證書</a>
         </div>
         </div>
-			{% if user.id == 1 %}
-		<li><a href="/account/userlist"><img  width=16 src="/static/images/icon_admin.png">帳號</a></li>
-            {% if not request.user|has_group:"teacher" %}
-		<li><a href="/account/event/0"><img  width=16 src="/static/images/icon_event.png">事件</a></a></li>            
-            {% endif %}
-			{% endif %}				        
-
             {% if request.user|has_group:"teacher" %} 	
 		<li><a href="/teacher/classroom"><img  width=16 src="/static/images/icon_teacher.png">教師</a></li>
 			{% endif %}
 			{% if user.id == 1 %}
+    		<li><a href="/account/userlist"><img  width=16 src="/static/images/icon_admin.png">帳號</a></li>
 			<li><a href="/account/event/admin"><img  width=16 src="/static/images/icon_event.png">事件</a></li>		
 			{% else %}
 			{% if user|event %}
-		<li><a href="/account/event/{{user.id}}"><img  width=16 src="/static/images/icon_event.png">事件</a></li>		
+		    <li><a href="/account/event/{{user.id}}"><img  width=16 src="/static/images/icon_event.png">事件</a></li>		
             {% endif %}
             {% endif %}
 	    {% endif %}
