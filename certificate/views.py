@@ -39,7 +39,7 @@ def upload_pic(request):
             try:
                 m = Certificate.objects.get(student_id=request.user.id)
                 m.picture = form.cleaned_data['image']
-				
+                
                 image_field = form.cleaned_data.get('image')
                 image_file = StringIO.StringIO(image_field.read())
                 image = Image.open(image_file)
@@ -49,7 +49,8 @@ def upload_pic(request):
                 image.save(image_file, 'JPEG', quality=90)
 
                 image_field.file = image_file
-                m.save()
+                m.save()                
+
             except ObjectDoesNotExist:
                 m = Certificate(picture=form.cleaned_data['image'], student_id=request.user.id)
                 m.save()
