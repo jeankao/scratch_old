@@ -362,7 +362,7 @@ class UserListView(ListView):
     def get_queryset(self):
         # 記錄系統事件
         if is_event_open(self.request) :           
-            log = Log(user_id=1, event='查看帳號')
+            log = Log(user_id=1, event='管理員查看帳號')
             log.save()         
         queryset = User.objects.all().order_by('-id')
         return queryset
@@ -380,9 +380,8 @@ def make(request):
             group.save()
         if action == 'set':            
             # 記錄系統事件
-            if is_event_open() : 
-                log = Log(user_id=1, event=u'設為教師<'+user.first_name+'>')
-                log.save()                        
+            log = Log(user_id=1, event=u'管理員設為教師<'+user.first_name+'>')
+            log.save()                        
             group.user_set.add(user)
             # create Message
             title = "<" + request.user.first_name + u">設您為教師"
