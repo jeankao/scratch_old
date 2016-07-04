@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm, EmailForm
+from forms import LoginForm, UserRegistrationForm, PasswordForm, RealnameForm, LineForm, SchoolForm, EmailForm
 from django.contrib.auth.models import User
 from account.models import Profile, PointHistory, Log, Message, MessagePoll, Visitor, VisitorLog
 from student.models import Enroll, Work, Assistant
@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 from datetime import datetime
 from django.utils import timezone
+from django.apps import apps
 
 # 判斷是否開啟事件記錄
 def is_event_open(request):
@@ -60,10 +61,18 @@ def is_classmate(user, classroom_id):
 
 # 網站首頁
 def homepage(request):
+    models = apps.get_models()
+    row_count = 0
+    for model in models:
+        row_count = row_count + model.objects.count()
     users = User.objects.all()
-    admin_user = User.objects.get(id=1)
-    admin_profile = Profile.objects.get(user=admin_user)
-    return render_to_response('homepage.html', {'user_count':len(users), 'admin_profile': admin_profile}, context_instance=RequestContext(request))
+    try :
+        admin_user = User.objects.get(id=1)
+        admin_profile = Profile.objects.get(user=admin_user)
+    except ObjectDoesNotExist:
+        admin_profile = Profile(user=admin_user)
+        admin_rofile.save()
+    return render_to_response('homepage.html', {'row_count':row_count, 'user_count':len(users), 'admin_profile': admin_profile}, context_instance=RequestContext(request))
 
 # 使用者登入功能
 def user_login(request):
@@ -295,12 +304,12 @@ def adminschool(request):
     if request.method == 'POST':
         form = SchoolForm(request.POST)
         if form.is_valid():
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(id=request.user.id)
             user.last_name =form.cleaned_data['last_name']
             user.save()
             # 記錄系統事件
             if is_event_open(request) :               
-                log = Log(user_id=request.user.id, event=u'修改學校名稱<'+user.first_name+'>')
+                log = Log(user_id=request.user.id, event=u'修改學校名稱<'+user.last_name+'>')
                 log.save()                
             return redirect('/account/profile/'+str(request.user.id))
     else:

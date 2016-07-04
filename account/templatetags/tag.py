@@ -54,7 +54,10 @@ def show_member(show_id):
     
 @register.filter(name='has_group') 
 def has_group(user, group_name):
-    group =  Group.objects.get(name=group_name) 
+    try:
+        group =  Group.objects.get(name=group_name) 
+    except:
+        group = None
     return group in user.groups.all()
     
 @register.filter(name='unread') 

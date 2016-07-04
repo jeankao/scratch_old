@@ -25,8 +25,7 @@ SECRET_KEY = 'g52qe$y0_oswmxri=b+-%e5wgdb4#l=32t%q&19g1&d+t@l#$9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -81,8 +80,15 @@ WSGI_APPLICATION = 'scratch.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'scratch',
+        'USER': 'scratch',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '',    
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -129,6 +135,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"), 
 ]
+
+# Static asset configuration.
+#STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 import os
 if os.getenv('DATABASE_URL') is not None:

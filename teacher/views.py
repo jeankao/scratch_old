@@ -839,12 +839,11 @@ class AnnounceListView(ListView):
     template_name = 'teacher/announce_list.html'    
     paginate_by = 20
     def get_queryset(self):
-
-        # 記錄系統事件
-        if is_event_open() :    
-            log = Log(user_id=self.request.user.id, event='查看班級公告')
-            log.save()        
         queryset = Message.objects.filter(classroom_id=self.kwargs['classroom_id'], author_id=self.request.user.id).order_by("-id")
+        # 記錄系統事件
+        if is_event_open(self.request) :
+            log = Log(user_id=self.request.user.id, event='查看班級公告')
+            log.save()     
         return queryset
         
     def get_context_data(self, **kwargs):

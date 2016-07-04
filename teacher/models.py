@@ -19,7 +19,7 @@ class Classroom(models.Model):
     # 組別人數
     group_show_size = models.IntegerField(default=2)    
 	# 事件
-    event_open = models.BooleanField(default=False)
+    event_open = models.BooleanField(default=True)
 	# 課程事件
     event_video_open = models.BooleanField(default=True)    
     
